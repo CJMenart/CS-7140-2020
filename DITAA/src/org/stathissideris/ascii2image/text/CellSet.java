@@ -33,7 +33,7 @@ import java.util.Set;
  */
 public class CellSet implements Iterable<TextGrid.Cell> {
 
-	private static final boolean DEBUG = false;
+	private static final boolean DEBUG = true;
 	private static final boolean VERBOSE_DEBUG = false;
 	
 	public static final int TYPE_CLOSED = 0;
@@ -142,6 +142,10 @@ public class CellSet implements Iterable<TextGrid.Cell> {
 
 	//Could rewrite with return type to me more efficient, save a few lines...
 	public int getType(TextGrid grid) {
+		if (DEBUG) {
+			printAsGrid();
+		}
+
 		if(typeIsValid) return type;
 		typeIsValid = true;
 		if(size() == 1) {
@@ -313,6 +317,17 @@ public class CellSet implements Iterable<TextGrid.Cell> {
 	public boolean contains(TextGrid.Cell cell){
 		if(cell == null) return false;
 		return internalSet.contains(cell);
+	}
+
+	public boolean isSubsetOf(CellSet other) {
+		Iterator<TextGrid.Cell> it = iterator();
+		while (it.hasNext()) {
+			TextGrid.Cell cCell = it.next();
+			if (!other.contains(cCell)) {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 //	public boolean contains(TextGrid.Cell cell){
@@ -585,7 +600,7 @@ public class CellSet implements Iterable<TextGrid.Cell> {
 	public ArrayList breakTrulyMixedBoundaries(TextGrid grid){
 		ArrayList result = new ArrayList();
 		CellSet visitedEnds = new CellSet();
-		
+
 		TextGrid workGrid = TextGrid.makeSameSizeAs(grid);
 		grid.copyCellsTo(this, workGrid);
 
@@ -598,29 +613,33 @@ public class CellSet implements Iterable<TextGrid.Cell> {
 		while(it.hasNext()){
 			TextGrid.Cell start = (TextGrid.Cell) it.next();
 			if(workGrid.isLinesEnd(start) && !visitedEnds.contains(start)){
-				
+
 				if (DEBUG)
 					System.out.println("Starting new subshape:");
-				
+
 				CellSet set = new CellSet();
 				set.add(start);
 				if(DEBUG) System.out.println("Added boundary "+start);
-				
+
 				TextGrid.Cell previous = start;
 				TextGrid.Cell cell = null;
 				CellSet nextCells = workGrid.followCell(previous);
 				if(nextCells.size() == 0)
 					throw new IllegalArgumentException("This shape is either open but multipart or has only one cell, and cannot be processed by this method");
 				cell = (TextGrid.Cell) nextCells.getFirst();
-				set.add(cell);
-				if(DEBUG) System.out.println("Added boundary "+cell);
-				
+
+				//add this cell unless it's an intersection! ~ Chris M
+				if (!workGrid.isIntersection(cell)) {
+					set.add(cell);
+					if(DEBUG) System.out.println("Added boundary "+cell);
+				}
+
 				boolean finished = false;
 				if(workGrid.isLinesEnd(cell)){
 					visitedEnds.add(cell);
-					finished = true;					
+					finished = true;
 				}
-				
+
 				while(!finished){
 					nextCells = workGrid.followCell(cell, previous);
 					if(nextCells.size() == 1) {
@@ -652,7 +671,7 @@ public class CellSet implements Iterable<TextGrid.Cell> {
 		}
 		result.add(whatsLeft);
 		if(DEBUG) whatsLeft.printAsGrid();
-		
+
 		return result;
 	}
 

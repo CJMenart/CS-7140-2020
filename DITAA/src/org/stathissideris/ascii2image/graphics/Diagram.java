@@ -37,7 +37,7 @@ import org.stathissideris.ascii2image.text.*;
  */
 public class Diagram {
 
-	private static final boolean DEBUG = false;
+	private static final boolean DEBUG = true;
 	private static final boolean VERBOSE_DEBUG = false;
 
 	private ArrayList shapes = new ArrayList();
@@ -191,7 +191,7 @@ public class Diagram {
 				set.printAsGrid();
 			}
 		}
-		//This seems to be a bug...we are calling removeDuplicateSets twice. ~ CHRIS MENART
+		//This seems to be a bug...we are calling removeDuplicateSets twice? ~ CHRIS MENART
 		int originalSize = boundarySetsStep2.size(); 
 		boundarySetsStep2 = CellSet.removeDuplicateSets(boundarySetsStep2);
 		if(DEBUG) {
@@ -203,95 +203,24 @@ public class Diagram {
 		} 
 		
 
+
+
+
+
 		//split boundaries to open, closed and mixed
-		
-		if (DEBUG)
-			System.out.println("******* First evaluation of openess *******");
-		
-		ArrayList open = new ArrayList();
-		ArrayList closed = new ArrayList();
-		ArrayList mixed = new ArrayList();
-		
-		Iterator sets = boundarySetsStep2.iterator();
-		while(sets.hasNext()){
-			CellSet set = (CellSet) sets.next();
-			int type = set.getType(workGrid);
-			if(type == CellSet.TYPE_CLOSED) closed.add(set);
-			else if(type == CellSet.TYPE_OPEN) open.add(set);
-			else if(type == CellSet.TYPE_MIXED) mixed.add(set);
-			if(DEBUG){
-				if(type == CellSet.TYPE_CLOSED) System.out.println("Closed boundaries:");
-				else if(type == CellSet.TYPE_OPEN) System.out.println("Open boundaries:");
-				else if(type == CellSet.TYPE_MIXED) System.out.println("Mixed boundaries:");
-				set.printAsGrid();
-			}
-		}
-		
-		boolean hadToEliminateMixed = false;
-		
-		if(mixed.size() > 0 && closed.size() > 0) {
-							// mixed shapes can be eliminated by
-							// subtracting all the closed shapes from them 
+		ArrayList open;
+		ArrayList closed;
+		ArrayList mixed;
+		Iterator sets;
+		do {
 			if (DEBUG)
-				System.out.println("******* Eliminating mixed shapes (basic algorithm) *******");
-		
-			hadToEliminateMixed = true;
-			
-			//subtract from each of the mixed sets all the closed sets
-			sets = mixed.iterator();
-			while(sets.hasNext()){
-				CellSet set = (CellSet) sets.next();
-				Iterator closedSets = closed.iterator();
-				while(closedSets.hasNext()){
-					CellSet closedSet = (CellSet) closedSets.next();
-					set.subtractSet(closedSet);
-				}
-				// this is necessary because some mixed sets produce
-				// several distinct open sets after you subtract the
-				// closed sets from them
-				if(set.getType(workGrid) == CellSet.TYPE_OPEN) {
-					boundarySetsStep2.remove(set);
-					boundarySetsStep2.addAll(set.breakIntoDistinctBoundaries(workGrid));
-				}
-			}
+				System.out.println("******* Evaluating openess *******");
 
-		} else if(mixed.size() > 0 && closed.size() == 0) {
-							// no closed shape exists, will have to
-							// handle mixed shape on its own 
-			// an example of this case is the following:
-			// +-----+
-			// |  A  |C                 B
-			// +  ---+-------------------
-			// |     |
-			// +-----+
-
-			hadToEliminateMixed = true;
-
-			if (DEBUG)
-				System.out.println("******* Eliminating mixed shapes (advanced algorithm for truly mixed shapes) *******");
-				
-			sets = mixed.iterator();
-			while(sets.hasNext()){
-				CellSet set = (CellSet) sets.next();
-				boundarySetsStep2.remove(set);
-				boundarySetsStep2.addAll(set.breakTrulyMixedBoundaries(workGrid));
-			}
-
-		} else {
-			if (DEBUG)
-				System.out.println("No mixed shapes found. Skipped mixed shape elimination step");
-		}
-		
-		
-		if(hadToEliminateMixed){
-			if (DEBUG)
-				System.out.println("******* Second evaluation of openess *******");
-		
-			//split boundaries again to open, closed and mixed
+			//Evaluate open-ness of each boundary.
 			open = new ArrayList();
 			closed = new ArrayList();
 			mixed = new ArrayList();
-		
+
 			sets = boundarySetsStep2.iterator();
 			while(sets.hasNext()){
 				CellSet set = (CellSet) sets.next();
@@ -306,7 +235,65 @@ public class Diagram {
 					set.printAsGrid();
 				}
 			}
-		}
+
+			/*
+			If there are mixed shapes, decompose them into open and closed shapes. This could, in edge cases, take
+			multiple passes, although not usually. ~Chris M.
+			 */
+
+			if(mixed.size() > 0 && closed.size() > 0) {
+				// some mixed shapes must be broken down by
+				// subtracting the closed shapes we have previously ID'd from them
+				if (DEBUG)
+					System.out.println("******* Eliminating mixed shapes (subtracting known closed curves) *******");
+
+				//subtract from each of the mixed sets all the closed sets
+				sets = mixed.iterator();
+				while(sets.hasNext()){
+					CellSet set = (CellSet) sets.next();
+					Iterator closedSets = closed.iterator();
+					while(closedSets.hasNext()){
+						CellSet closedSet = (CellSet) closedSets.next();
+						if (closedSet.isSubsetOf(set)) {
+							set.subtractSet(closedSet);
+						}
+					}
+					// this is necessary because some mixed sets produce
+					// several distinct open sets after you subtract the
+					// closed sets from them
+					if(set.getType(workGrid) == CellSet.TYPE_OPEN) {
+						boundarySetsStep2.remove(set);
+						boundarySetsStep2.addAll(set.breakIntoDistinctBoundaries(workGrid));
+					}
+				}
+			}
+			if(mixed.size() > 0) {
+				// Now we will have to
+				// handle mixed shape on its own
+				// an example of this case is the following:
+				// +-----+
+				// |  A  |C                 B
+				// +  ---+-------------------
+				// |     |
+				// +-----+
+				// This algorithm works by tracing in from dead-ends and pulling out open shapes.
+
+				if (DEBUG)
+					System.out.println("******* Eliminating mixed shapes (advanced tracing algorithm for very mixed shapes) *******");
+
+				sets = mixed.iterator();
+				while(sets.hasNext()){
+					CellSet set = (CellSet) sets.next();
+					boundarySetsStep2.remove(set);
+					boundarySetsStep2.addAll(set.breakTrulyMixedBoundaries(workGrid));
+				}
+
+			} else {
+				if (DEBUG)
+					System.out.println("No mixed shapes found. Skipped mixed shape elimination step");
+			}
+
+		} while (mixed.size() > 0);
 
 		boolean removedAnyObsolete = removeObsoleteShapes(workGrid, closed);
 		
