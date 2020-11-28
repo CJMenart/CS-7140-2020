@@ -33,7 +33,7 @@ import java.util.Set;
  */
 public class CellSet implements Iterable<TextGrid.Cell> {
 
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	private static final boolean VERBOSE_DEBUG = false;
 	
 	public static final int TYPE_CLOSED = 0;

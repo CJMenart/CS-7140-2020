@@ -69,7 +69,14 @@ public class TextGrid {
 		humanColorCodes.put("RED", "E32");
 		humanColorCodes.put("YEL", "FF3");
 		humanColorCodes.put("BLK", "000");
-		
+
+		//New for CS7140
+		humanColorCodes.put("WHT", "FFF");
+		humanColorCodes.put("ORN", "E82");
+		humanColorCodes.put("PRP", "A0D");
+		humanColorCodes.put("BRN", "641");
+		humanColorCodes.put("IDG", "50D");
+		humanColorCodes.put("CYN", "3AA");
 	}
 
 	private static HashSet<String> markupTags =

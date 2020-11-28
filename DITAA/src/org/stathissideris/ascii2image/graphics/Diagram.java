@@ -37,7 +37,7 @@ import org.stathissideris.ascii2image.text.*;
  */
 public class Diagram {
 
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	private static final boolean VERBOSE_DEBUG = false;
 
 	private ArrayList shapes = new ArrayList();
