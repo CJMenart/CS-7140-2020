@@ -20,6 +20,7 @@
  */
 package org.stathissideris.ascii2image.core;
 
+import java.awt.*;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -38,6 +39,7 @@ import org.apache.commons.cli.PosixParser;
 import org.stathissideris.ascii2image.graphics.BitmapRenderer;
 import org.stathissideris.ascii2image.graphics.Diagram;
 import org.stathissideris.ascii2image.text.TextGrid;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * 
@@ -139,7 +141,9 @@ public class CommandLineConverter {
 		}  
 		
 		args = cmdLine.getArgs();
-		
+
+		//TODO: Start GUI in this case? Fail if they try to use HTML mode with GUI? ~Chris M
+		boolean isGUI = false;
 		if(args.length == 0) {
 			System.err.println("Error: Please provide the input file filename");
 			new HelpFormatter().printHelp("java -jar ditaa.jar <inpfile> [outfile]", cmdLnOptions, true);
@@ -160,8 +164,16 @@ public class CommandLineConverter {
 				System.out.println(option.getLongOpt());
 			}
 		}
-		
+
+		//TODO: Break up into rendering and saving b/c GUI does those steps differently?
+
 		if(cmdLine.hasOption("html")){
+
+			if (isGUI) {
+				System.out.println("No GUI for converting HTML files.");
+				throw new NotImplementedException();
+			}
+
 			String filename = args[0];
 			
 			boolean overwrite = false;
@@ -224,7 +236,8 @@ public class CommandLineConverter {
 			
 			
 			RenderedImage image = new BitmapRenderer().renderToImage(diagram, options.renderingOptions);
-			
+
+			//TODO: 'Save' is just this block...or do we count the above Factor out so that it can be called by GUI? ~CM
 			try {
 				File file = new File(toFilename);
 				ImageIO.write(image, "png", file);
@@ -247,5 +260,17 @@ public class CommandLineConverter {
 //			}
 			
 		}
-	}	
+	}
+
+	/*
+	public static void saveImage(RenderedImage image, String toFilename) {
+		try {
+			File file = new File(toFilename);
+			ImageIO.write(image, "png", file);
+		} catch (IOException e) {
+			//e.printStackTrace();
+			System.err.println("Error: Cannot write to file "+toFilename);
+			System.exit(1);
+		}
+	}*/
 }
