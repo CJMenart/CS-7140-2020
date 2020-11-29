@@ -100,8 +100,8 @@ public class BitmapRenderer {
 	
 	public RenderedImage renderToImage(Diagram diagram,  RenderingOptions options){
 		BufferedImage image = new BufferedImage(
-					diagram.getWidth(),
-					diagram.getHeight(),
+					diagram.getPxWidth(),
+					diagram.getPxHeight(),
 					BufferedImage.TYPE_INT_RGB);
 		
 		return render(diagram, image, options);
@@ -125,7 +125,7 @@ public class BitmapRenderer {
 		
 		g2.setStroke(new BasicStroke(1, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_ROUND));
 
-		ArrayList shapes = diagram.getAllDiagramShapes();
+		ArrayList<DiagramShape> shapes = diagram.getAllDiagramShapes();
 
 		if(DEBUG) System.out.println("Rendering "+shapes.size()+" shapes (groups flattened)");
 
@@ -353,50 +353,16 @@ public class BitmapRenderer {
 			g2.setStroke(debugStroke);
 			g2.setColor(new Color(170, 170, 170));
 			g2.setXORMode(Color.white);
-			for(int x = 0; x < diagram.getWidth(); x += diagram.getCellWidth())
-				g2.drawLine(x, 0, x, diagram.getHeight());
-			for(int y = 0; y < diagram.getHeight(); y += diagram.getCellHeight())
-				g2.drawLine(0, y, diagram.getWidth(), y);
+			for(int x = 0; x < diagram.getPxWidth(); x += diagram.getCellWidth())
+				g2.drawLine(x, 0, x, diagram.getPxHeight());
+			for(int y = 0; y < diagram.getPxHeight(); y += diagram.getCellHeight())
+				g2.drawLine(0, y, diagram.getPxWidth(), y);
 		}
 		
 
 		g2.dispose();
 		
 		return renderedImage;
-	}
-	
-	private RenderedImage renderTextLayer(ArrayList textObjects, int width, int height){
-		TextCanvas canvas = new TextCanvas(textObjects);
-		Image image = canvas.createImage(width, height);
-		Graphics g = image.getGraphics();
-		canvas.paint(g);
-		return (RenderedImage) image;
-	}
-	
-	private class TextCanvas extends Canvas {
-		ArrayList textObjects;
-		
-		public TextCanvas(ArrayList textObjects){
-			this.textObjects = textObjects;
-		}
-		
-		public void paint(Graphics g){
-			Graphics g2 = (Graphics2D) g;
-			Iterator textIt = textObjects.iterator();
-			while(textIt.hasNext()){
-				DiagramText text = (DiagramText) textIt.next();
-				g2.setFont(text.getFont());
-				if(text.hasOutline()){
-					g2.setColor(text.getOutlineColor());
-					g2.drawString(text.getText(), text.getXPos() + 1, text.getYPos());
-					g2.drawString(text.getText(), text.getXPos() - 1, text.getYPos());
-					g2.drawString(text.getText(), text.getXPos(), text.getYPos() + 1);
-					g2.drawString(text.getText(), text.getXPos(), text.getYPos() - 1);
-				}
-				g2.setColor(text.getColor());
-				g2.drawString(text.getText(), text.getXPos(), text.getYPos());
-			}
-		}
 	}
 	
 	private void renderCustomShape(DiagramShape shape, Graphics2D g2){

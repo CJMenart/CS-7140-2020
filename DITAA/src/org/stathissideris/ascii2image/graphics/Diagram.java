@@ -24,10 +24,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.util.*;
 
-import javax.swing.plaf.SeparatorUI;
-import javax.xml.soap.Text;
-
-import com.sun.xml.internal.xsom.impl.scd.Iterators;
 import org.stathissideris.ascii2image.core.ConversionOptions;
 import org.stathissideris.ascii2image.core.Pair;
 import org.stathissideris.ascii2image.core.ProcessingOptions;
@@ -48,7 +44,7 @@ public class Diagram {
 	private ArrayList compositeShapes = new ArrayList();
 	private ArrayList textObjects = new ArrayList();
 	
-	private int width, height;
+	private int pxWidth, pxHeight;
 	private int cellWidth, cellHeight;
 	
 	
@@ -116,8 +112,8 @@ public class Diagram {
 		this.cellWidth = options.renderingOptions.getCellWidth();
 		this.cellHeight = options.renderingOptions.getCellHeight();
 		
-		width = grid.getWidth() * cellWidth;
-		height = grid.getHeight() * cellHeight;
+		pxWidth = grid.getWidth() * cellWidth;
+		pxHeight = grid.getHeight() * cellHeight;
 		
 		TextGrid workGrid = new TextGrid(grid);
 		workGrid.replaceTypeOnLine();
@@ -257,7 +253,7 @@ public class Diagram {
 	 * @requires true
 	 * @ensures \result is an ArrayList containing all elements of this.shapes and all elements of this.compositeShapes
 	 */
-	public /*@pure@*/ ArrayList getAllDiagramShapes(){
+	public /*@pure@*/ ArrayList<DiagramShape> getAllDiagramShapes(){
 		ArrayList shapes = new ArrayList();
 		shapes.addAll(this.getShapes());
 		
@@ -607,7 +603,7 @@ public class Diagram {
 	 * That form interior or exterior boundaries to regions of blank space. Uses an AbstractionGrid for this, so that it
 	 * can process the 'empty space' between directly-adjacent characters.
 	 * @ requires grid contains only shape characters (lines and corners) not arrows, text, etc &&
-	 * 		topologically, each CellSet in connectedComponents contains no 1-dimensional holes (i.e. are contiguous)
+	 * 		topologically, each CellSet in connectedComponents contains no 1-dimensional holes (i.e. each are contiguous)
 	 * @ ensures the union of all CellSets in \result matches the union off all CellSets in connectedComponents &&
 	 * @ 	topologically, each CellSet in \result contains 0 or 1 2-dimensional holes.
 	 */
@@ -804,7 +800,7 @@ public class Diagram {
 	/*
 	 * Pulls all free text out of grid, converts into DiagramTexts, and adds to textObjects
 	 * @ assignable this.textObjects
-	 * @ requires this.textObjects is non null && this.shapes is non-null
+	 * @ requires this.textObjects is non null && this.shapes is non-null && grid is non-null
 	 * @ ensures all 'free text' in grid (text not part of another DITAA entity) is represented by a DiagramText in
 	 * 		this.textObjects &&
 	 * @ 	any DiagramText overlapping any shapes in this.shapes is set to a color contrasting with one such shape. Any
@@ -833,7 +829,7 @@ public class Diagram {
 		while(textGroupIt.hasNext()){
 			CellSet textGroupCellSet = (CellSet) textGroupIt.next();
 
-			TextGrid isolationGrid = new TextGrid(width, height);
+			TextGrid isolationGrid = new TextGrid(pxWidth, pxHeight);
 			workGrid.copyCellsTo(textGroupCellSet, isolationGrid);
 
 			ArrayList strings = isolationGrid.findStrings();
@@ -979,15 +975,15 @@ public class Diagram {
 	/**
 	 * @return
 	 */
-	public /*@pure@*/ int getHeight() {
-		return height;
+	public /*@pure@*/ int getPxHeight() {
+		return pxHeight;
 	}
 
 	/**
 	 * @return
 	 */
-	public /*@pure@*/ int getWidth() {
-		return width;
+	public /*@pure@*/ int getPxWidth() {
+		return pxWidth;
 	}
 
 	/**
