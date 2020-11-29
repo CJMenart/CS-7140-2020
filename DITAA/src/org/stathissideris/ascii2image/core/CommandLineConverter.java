@@ -95,6 +95,13 @@ public class CommandLineConverter {
 				.create('t')
 				);
 
+		cmdLnOptions.addOption(
+				OptionBuilder.withLongOpt("gui")
+						.withDescription("Runs the graphical interface; Not compatible with the --html option.")
+						.withArgName("gui")
+						.create('g')
+		);
+
 //TODO: uncomment this for next version:
 //		cmdLnOptions.addOption(
 //				OptionBuilder.withLongOpt("config")
@@ -104,8 +111,6 @@ public class CommandLineConverter {
 //				.create('c') );
 		
 		CommandLine cmdLine = null;
-		
-		
 		
 		///// parse command line options
 		try {
@@ -127,7 +132,7 @@ public class CommandLineConverter {
 		}
 		
 		
-		if(cmdLine.hasOption("help") || args.length == 0 ){
+		if(cmdLine.hasOption("help")){
 			new HelpFormatter().printHelp("java -jar ditaa.jar <inpfile> [outfile]", cmdLnOptions, true);
 			System.exit(0);			
 		}
@@ -146,11 +151,12 @@ public class CommandLineConverter {
 		boolean isGUI = false;
 		if(args.length == 0) {
 			isGUI = true;
-			//System.err.println("Error: Please provide the input file filename");
-			//new HelpFormatter().printHelp("java -jar ditaa.jar <inpfile> [outfile]", cmdLnOptions, true);
-			//System.exit(2);
-		} 
-		
+			System.out.println("No parameters detected; running in GUI mode.");
+		}
+		else if(cmdLine.hasOption("gui")){
+			isGUI = true;
+		}
+
 		/////// print options before running
 		System.out.println("Running with options:");
 		Option[] opts = cmdLine.getOptions();
@@ -199,64 +205,61 @@ public class CommandLineConverter {
 
 			//TODO make more elegant after refactoring of CommandLineConverter
 			if (isGUI) {
-				new DitaaGUI().openGUI();
-				return;
+				new DitaaGUI(options).openGUI();
 			}
-
-			TextGrid grid = new TextGrid();
-			if(options.processingOptions.getCustomShapes() != null){
-				grid.addToMarkupTags(options.processingOptions.getCustomShapes().keySet());
-			}
-			String filename = args[0];
-			System.out.println("Reading file: "+filename);
-			try {
-				if(!grid.loadFrom(filename, options.processingOptions)){
-					System.err.println("Cannot open file "+filename+" for reading");
+			else{
+				String inFilename = args[0];
+				String toFilename;
+				if(args.length == 1){
+					toFilename = FileUtils.makeTargetPathname(inFilename, "png",
+							options.processingOptions.overwriteFiles());
+				} else {
+					toFilename = args[1];
 				}
-			} catch (UnsupportedEncodingException e1){
-				System.err.println("Error: "+e1.getMessage());
-				System.exit(1);
-			} catch (FileNotFoundException e1) {
-				System.err.println("Error: File "+filename+" does not exist");
-				System.exit(1);
-			} catch (IOException e1) {
-				System.err.println("Error: Cannot open file "+filename+" for reading");
-				System.exit(1);
-			}
-			
-			if(options.processingOptions.printDebugOutput()){
-				System.out.println("Using grid:");
-				grid.printDebug();
-			}
-			
-			boolean overwrite = false;
-			if(options.processingOptions.overwriteFiles()) overwrite = true;
-			String toFilename;
-			if(args.length == 1){
-				toFilename = FileUtils.makeTargetPathname(filename, "png", overwrite);
-			} else {
-				toFilename = args[1];
-			}
-			
-			Diagram diagram = new Diagram(grid, options);
-			System.out.println("Rendering to file: "+toFilename);
-			
-			
-			RenderedImage image = new BitmapRenderer().renderToImage(diagram, options.renderingOptions);
 
-			saveImage(image, toFilename);
+				CommandLineConverter.runSimpleMode(options, inFilename, toFilename);
 
-			long endTime = System.currentTimeMillis();
-			long totalTime  = (endTime - startTime) / 1000;
-			System.out.println("Done in "+totalTime+"sec");
-			
-//			try {
-//			Thread.sleep(Long.MAX_VALUE);
-//			} catch (InterruptedException e) {
-//			e.printStackTrace();
-//			}
-			
+				long endTime = System.currentTimeMillis();
+				long totalTime  = (endTime - startTime) / 1000;
+				System.out.println("Done in "+totalTime+"sec");
+			}
 		}
+	}
+
+	public static void runSimpleMode(ConversionOptions options, String filename, String toFilename){
+		TextGrid grid = new TextGrid();
+		if(options.processingOptions.getCustomShapes() != null){
+			grid.addToMarkupTags(options.processingOptions.getCustomShapes().keySet());
+		}
+
+		System.out.println("Reading file: "+filename);
+		try {
+			if(!grid.loadFrom(filename, options.processingOptions)){
+				System.err.println("Cannot open file "+filename+" for reading");
+			}
+		} catch (UnsupportedEncodingException e1){
+			System.err.println("Error: "+e1.getMessage());
+			System.exit(1);
+		} catch (FileNotFoundException e1) {
+			System.err.println("Error: File "+filename+" does not exist");
+			System.exit(1);
+		} catch (IOException e1) {
+			System.err.println("Error: Cannot open file "+filename+" for reading");
+			System.exit(1);
+		}
+
+		if(options.processingOptions.printDebugOutput()){
+			System.out.println("Using grid:");
+			grid.printDebug();
+		}
+
+		Diagram diagram = new Diagram(grid, options);
+		System.out.println("Rendering to file: "+toFilename);
+
+
+		RenderedImage image = new BitmapRenderer().renderToImage(diagram, options.renderingOptions);
+
+		saveImage(image, toFilename);
 	}
 
 	public static void saveImage(RenderedImage image, String toFilename) {
