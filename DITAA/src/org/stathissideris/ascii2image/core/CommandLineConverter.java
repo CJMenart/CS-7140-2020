@@ -145,9 +145,10 @@ public class CommandLineConverter {
 		//TODO: Start GUI in this case? Fail if they try to use HTML mode with GUI? ~Chris M
 		boolean isGUI = false;
 		if(args.length == 0) {
-			System.err.println("Error: Please provide the input file filename");
-			new HelpFormatter().printHelp("java -jar ditaa.jar <inpfile> [outfile]", cmdLnOptions, true);
-			System.exit(2);
+			isGUI = true;
+			//System.err.println("Error: Please provide the input file filename");
+			//new HelpFormatter().printHelp("java -jar ditaa.jar <inpfile> [outfile]", cmdLnOptions, true);
+			//System.exit(2);
 		} 
 		
 		/////// print options before running
@@ -195,7 +196,13 @@ public class CommandLineConverter {
 			System.exit(0);
 			
 		} else { //simple mode
-			
+
+			//TODO make more elegant after refactoring of CommandLineConverter
+			if (isGUI) {
+				new DitaaGUI().openGUI();
+				return;
+			}
+
 			TextGrid grid = new TextGrid();
 			if(options.processingOptions.getCustomShapes() != null){
 				grid.addToMarkupTags(options.processingOptions.getCustomShapes().keySet());
@@ -237,18 +244,8 @@ public class CommandLineConverter {
 			
 			RenderedImage image = new BitmapRenderer().renderToImage(diagram, options.renderingOptions);
 
-			//TODO: 'Save' is just this block...or do we count the above Factor out so that it can be called by GUI? ~CM
-			try {
-				File file = new File(toFilename);
-				ImageIO.write(image, "png", file);
-			} catch (IOException e) {
-				//e.printStackTrace();
-				System.err.println("Error: Cannot write to file "+filename);
-				System.exit(1);
-			}
-			
-			//BitmapRenderer.renderToPNG(diagram, toFilename, options.renderingOptions);
-			
+			saveImage(image, toFilename);
+
 			long endTime = System.currentTimeMillis();
 			long totalTime  = (endTime - startTime) / 1000;
 			System.out.println("Done in "+totalTime+"sec");
@@ -262,7 +259,6 @@ public class CommandLineConverter {
 		}
 	}
 
-	/*
 	public static void saveImage(RenderedImage image, String toFilename) {
 		try {
 			File file = new File(toFilename);
@@ -272,5 +268,5 @@ public class CommandLineConverter {
 			System.err.println("Error: Cannot write to file "+toFilename);
 			System.exit(1);
 		}
-	}*/
+	}
 }
