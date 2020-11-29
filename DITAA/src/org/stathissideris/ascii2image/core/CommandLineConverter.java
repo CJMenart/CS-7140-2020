@@ -205,7 +205,7 @@ public class CommandLineConverter {
 
 			//TODO make more elegant after refactoring of CommandLineConverter
 			if (isGUI) {
-				new DitaaGUI().openGUI();
+				new DitaaGUI(options).openGUI();
 			}
 			else{
 				String inFilename = args[0];

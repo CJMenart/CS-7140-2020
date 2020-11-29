@@ -21,8 +21,13 @@ public class DitaaGUI{
     private boolean sourceFileValid = false;
     // the location in the temp dir where ditaa has generated the image (once a valid source is loaded)
     private String tempOutputLoc;
-    // keep a reference to the output image label at the class level so that it can be accessed by both sub-panels
+    // keep a reference to the output image label and save buttons at the class level so that they can be accessed
+    // by both sub-panels
     private JLabel outputImagePanel;
+    private JButton saveFileButton;
+
+    // the options to pass to DITAA
+    ConversionOptions options = new ConversionOptions();
 
     public DitaaGUI(){
         this.frame = new JFrame("DITAA GUI");
@@ -36,6 +41,12 @@ public class DitaaGUI{
 
         this.frame.getContentPane().add(mainSplit);
         this.frame.pack();
+    }
+
+    public DitaaGUI(ConversionOptions opts){
+        this();
+
+        this.options = opts;
     }
 
     public void openGUI() {
@@ -122,6 +133,12 @@ public class DitaaGUI{
 
                         // load the output image into the output panel
                         DitaaGUI.this.updateOutputImage();
+                        DitaaGUI.this.saveFileButton.setEnabled(true);
+                    }
+                    else{
+                        // set back to false in case it was enabled previously
+                        DitaaGUI.this.clearOutputImage();
+                        DitaaGUI.this.saveFileButton.setEnabled(false);
                     }
                 }
             }
@@ -142,7 +159,8 @@ public class DitaaGUI{
         JScrollPane scrollPane = new JScrollPane(outputImagePanel);
         sourcePanel.add(scrollPane);
 
-        JButton saveFileButton = new JButton("Save As...");
+        this.saveFileButton = new JButton("Save As...");
+        saveFileButton.setEnabled(false); //(disable until a file is loaded)
         saveFileButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
@@ -174,8 +192,6 @@ public class DitaaGUI{
     }
 
     private String runDitaa(){
-        ConversionOptions options = new ConversionOptions();
-
         // get a temporary file path
         Path outFilePath = null;
         try {
@@ -186,7 +202,7 @@ public class DitaaGUI{
             System.err.println(e.getStackTrace());
         }
 
-        CommandLineConverter.runSimpleMode(options, this.sourceFilePath, outFilePath.toString());
+        CommandLineConverter.runSimpleMode(this.options, this.sourceFilePath, outFilePath.toString());
         return outFilePath.toString();
     }
 
@@ -203,6 +219,12 @@ public class DitaaGUI{
 
                 this.outputImagePanel.setText("Error loading preview.");
             }
+        }
+    }
+
+    private void clearOutputImage(){
+        if(this.outputImagePanel != null){
+            this.outputImagePanel.setIcon(null);
         }
     }
 
