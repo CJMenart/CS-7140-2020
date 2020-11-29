@@ -331,6 +331,8 @@ public class TextGrid {
 		}		
 	}
 
+
+
 	public void replacePointMarkersOnLine(){
 		int width = getWidth();
 		int height = getHeight();
