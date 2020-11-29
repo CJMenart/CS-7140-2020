@@ -49,7 +49,8 @@ import org.stathissideris.ascii2image.core.Shape3DOrderingComparator;
 import org.stathissideris.ascii2image.text.TextGrid;
 
 /**
- * 
+ * @ invariant: normalStroke and DashStroke are either null or hold Stroke objects which draw solid and dashed lines
+ * respectively.
  * @author Efstathios Sideris
  */
 public class BitmapRenderer {
@@ -84,6 +85,10 @@ public class BitmapRenderer {
 		//Process p = Runtime.getRuntime().exec("display "+filename+".png", null, workDir);
 	}
 
+	/*
+	 * @requires All arguments are non-null
+	 * @ensures writes renderToImage(diagram, options) to filename as a PNG.
+	 */
 	private boolean renderToPNG(Diagram diagram, String filename, RenderingOptions options){	
 		RenderedImage image = renderToImage(diagram, options);
 		
@@ -97,7 +102,11 @@ public class BitmapRenderer {
 		}
 		return true;
 	}
-	
+
+	/*
+	 * @requires all arguments are non-null
+	 * @ensures Makes a BufferedImage image with the same size as Diagram and returns render(diagram, image, options)
+	 */
 	public RenderedImage renderToImage(Diagram diagram,  RenderingOptions options){
 		BufferedImage image = new BufferedImage(
 					diagram.getPxWidth(),
@@ -106,92 +115,34 @@ public class BitmapRenderer {
 		
 		return render(diagram, image, options);
 	}
-	
+
+	/*
+	 * One of the main functions in the program! Encodes what the render of a Diagram is.
+	 * @requires all arguments are non-null
+	 * @ensures draws a visual representation of diagram onto image. Overwrites any existing contents in image.
+	 */
 	public RenderedImage render(Diagram diagram, BufferedImage image,  RenderingOptions options){
-		RenderedImage renderedImage = image;
+
 		Graphics2D g2 = image.createGraphics();
-
-		Object antialiasSetting = RenderingHints.VALUE_ANTIALIAS_OFF;
-		if(options.performAntialias())
-			antialiasSetting = RenderingHints.VALUE_ANTIALIAS_ON;
-		
-		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, antialiasSetting);
-
 		g2.setColor(Color.white);
 		//TODO: find out why the next line does not work
 		g2.fillRect(0, 0, image.getWidth()+10, image.getHeight()+10);
 		/*for(int y = 0; y < diagram.getHeight(); y ++)
 			g2.drawLine(0, y, diagram.getWidth(), y);*/
-		
-		g2.setStroke(new BasicStroke(1, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_ROUND));
+		g2.dispose();
 
-		ArrayList<DiagramShape> shapes = diagram.getAllDiagramShapes();
-
-		if(DEBUG) System.out.println("Rendering "+shapes.size()+" shapes (groups flattened)");
-
-		Iterator shapesIt;
-		if(options.dropShadows()){
-			//render shadows
-			shapesIt = shapes.iterator();
-			while(shapesIt.hasNext()){
-				DiagramShape shape = (DiagramShape) shapesIt.next();
-
-				if(shape.getPoints().isEmpty()) continue;
-
-				//GeneralPath path = shape.makeIntoPath();
-				GeneralPath path;
-				path = shape.makeIntoRenderPath(diagram);			
-							
-				float offset = diagram.getMinimumOfCellDimension() / 3.333f;
-			
-				if(path != null
-						&& shape.dropsShadow()
-						&& shape.getType() != DiagramShape.TYPE_CUSTOM){
-					GeneralPath shadow = new GeneralPath(path);
-					AffineTransform translate = new AffineTransform();
-					translate.setToTranslation(offset, offset);
-					shadow.transform(translate);
-					g2.setColor(new Color(150,150,150));
-					g2.fill(shadow);
-				
-				}
-			}
-
-		
-			//blur shadows
-		
-			if(true) {
-				int blurRadius = 6;
-				int blurRadius2 = blurRadius * blurRadius;
-				float blurRadius2F = blurRadius2;
-				float weight = 1.0f / blurRadius2F;
-				float[] elements = new float[blurRadius2];
-				for (int k = 0; k < blurRadius2; k++)
-					elements[k] = weight;
-				Kernel myKernel = new Kernel(blurRadius, blurRadius, elements);
-
-				//if EDGE_NO_OP is not selected, EDGE_ZERO_FILL is the default which creates a black border 
-				ConvolveOp simpleBlur =
-					new ConvolveOp(myKernel, ConvolveOp.EDGE_NO_OP, null);
-								
-				BufferedImage destination =
-					new BufferedImage(
-						image.getWidth(),
-						image.getHeight(),
-						image.getType());
-
-				simpleBlur.filter(image, (BufferedImage) destination);
-
-				//destination = destination.getSubimage(blurRadius/2, blurRadius/2, image.getWidth(), image.getHeight()); 
-				g2 = (Graphics2D) destination.getGraphics();
-				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, antialiasSetting);
-				renderedImage = (RenderedImage) destination;
-			}
+		if(options.dropShadows()) {
+			image = dropShadows(diagram, image, options.performAntialias());
 		}
 
-		
+		//destination = destination.getSubimage(blurRadius/2, blurRadius/2, image.getWidth(), image.getHeight());
+		g2 = (Graphics2D) image.getGraphics();
+		Object antialiasSetting = RenderingHints.VALUE_ANTIALIAS_OFF;
+		if(options.performAntialias())
+			antialiasSetting = RenderingHints.VALUE_ANTIALIAS_ON;
+		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, antialiasSetting);
+
 		//fill and stroke
-		
 		float dashInterval = Math.min(diagram.getCellWidth(), diagram.getCellHeight()) / 2;
 		//Stroke normalStroke = g2.getStroke();
 		
@@ -216,11 +167,13 @@ public class BitmapRenderer {
 		  );
 		
 		//TODO: at this stage we should draw the open shapes first in order to make sure they are at the bottom (this is useful for the {mo} shape) 
-		
-		
+
+		ArrayList<DiagramShape> shapes = diagram.getAllDiagramShapes();
+		if(DEBUG) System.out.println("Rendering "+shapes.size()+" shapes (groups flattened)");
+
 		//find storage shapes
 		ArrayList storageShapes = new ArrayList();
-		shapesIt = shapes.iterator();
+		Iterator shapesIt = shapes.iterator();
 		while(shapesIt.hasNext()){
 			DiagramShape shape = (DiagramShape) shapesIt.next();
 			if(shape.getType() == DiagramShape.TYPE_STORAGE) {
@@ -235,7 +188,6 @@ public class BitmapRenderer {
 		//TODO: known bug: if a storage object is within a bigger normal box, it will be overwritten in the main drawing loop
 		//(BUT this is not possible since tags are applied to all shapes overlaping shapes)
 
-		
 		Collections.sort(storageShapes, new Shape3DOrderingComparator());
 		
 		g2.setStroke(normalStroke);
@@ -261,7 +213,6 @@ public class BitmapRenderer {
 			g2.setColor(shape.getStrokeColor());
 			g2.draw(path);
 		}
-
 
 		//render the rest of the shapes
 		ArrayList pointMarkers = new ArrayList();
@@ -328,20 +279,7 @@ public class BitmapRenderer {
 		//g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		//renderTextLayer(diagram.getTextObjects().iterator());
 		
-		Iterator textIt = diagram.getTextObjects().iterator();
-		while(textIt.hasNext()){
-			DiagramText text = (DiagramText) textIt.next();
-			g2.setFont(text.getFont());
-			if(text.hasOutline()){
-				g2.setColor(text.getOutlineColor());
-				g2.drawString(text.getText(), text.getXPos() + 1, text.getYPos());
-				g2.drawString(text.getText(), text.getXPos() - 1, text.getYPos());
-				g2.drawString(text.getText(), text.getXPos(), text.getYPos() + 1);
-				g2.drawString(text.getText(), text.getXPos(), text.getYPos() - 1);
-			}
-			g2.setColor(text.getColor());
-			g2.drawString(text.getText(), text.getXPos(), text.getYPos());
-		}
+		renderText(diagram, g2);
 		
 		if(options.renderDebugLines() || DEBUG){
 			Stroke debugStroke =
@@ -358,13 +296,84 @@ public class BitmapRenderer {
 			for(int y = 0; y < diagram.getPxHeight(); y += diagram.getCellHeight())
 				g2.drawLine(0, y, diagram.getPxWidth(), y);
 		}
-		
 
 		g2.dispose();
-		
+
+		RenderedImage renderedImage = image;
 		return renderedImage;
 	}
-	
+
+	/*
+	 * Renders drop shadows of shapes in diagram onto image.
+	 * @requires: all arguments are non-null. 'image' contains a blank white background and nothing else.
+	 * @ensures: a shadow of every shape in diagram.getAllDiagramShapes() for which shape.dropsShadow() is rendered
+	 * onto a copy of image, which is returned as the result. The shadows are blurry dark-grey copies of their respective
+	 * shapes, and offset from the
+	 * shape's positions by diagram.getMinimumofCellDimension() / 3.333f. The image is antialiased iff performAntialias
+	 * = true
+	 */
+	private BufferedImage dropShadows(Diagram diagram, BufferedImage image, boolean performAntialias) {
+
+		Graphics2D g2 = image.createGraphics();
+		Object antialiasSetting = RenderingHints.VALUE_ANTIALIAS_OFF;
+		if(performAntialias)
+			antialiasSetting = RenderingHints.VALUE_ANTIALIAS_ON;
+		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, antialiasSetting);
+		g2.setStroke(new BasicStroke(1, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_ROUND));
+
+		//render shadows
+		Iterator shapesIt = diagram.getAllDiagramShapes().iterator();
+		while(shapesIt.hasNext()){
+			DiagramShape shape = (DiagramShape) shapesIt.next();
+
+			if(shape.getPoints().isEmpty()) continue;
+
+			GeneralPath path = shape.makeIntoRenderPath(diagram);
+
+			float offset = diagram.getMinimumOfCellDimension() / 3.333f;
+
+			if (path != null
+					&& shape.dropsShadow()
+					&& shape.getType() != DiagramShape.TYPE_CUSTOM){
+				GeneralPath shadow = new GeneralPath(path);
+				AffineTransform translate = new AffineTransform();
+				translate.setToTranslation(offset, offset);
+				shadow.transform(translate);
+				g2.setColor(new Color(150,150,150));
+				g2.fill(shadow);
+			}
+		}
+
+		//blur shadows
+		int blurRadius = 6;
+		int blurRadius2 = blurRadius * blurRadius;
+		float blurRadius2F = blurRadius2;
+		float weight = 1.0f / blurRadius2F;
+		float[] elements = new float[blurRadius2];
+		for (int k = 0; k < blurRadius2; k++)
+			elements[k] = weight;
+		Kernel myKernel = new Kernel(blurRadius, blurRadius, elements);
+
+		//if EDGE_NO_OP is not selected, EDGE_ZERO_FILL is the default which creates a black border
+		ConvolveOp simpleBlur =
+				new ConvolveOp(myKernel, ConvolveOp.EDGE_NO_OP, null);
+
+		BufferedImage destination =
+				new BufferedImage(
+						image.getWidth(),
+						image.getHeight(),
+						image.getType());
+
+		simpleBlur.filter(image, (BufferedImage) destination);
+		g2.dispose();
+		return destination;
+	}
+
+	/*
+	 * @requires Arguments are not null. this.normalStroke and this.dashStroke are not null. shape.type = TYPE_CUSTOM
+	 * and the PNG or SVG asset defining the custom shape is available at the location specified by shape.getDefinition().getFilename().
+	 * @ensures The custom shape is rendered onto g2.
+	 */
 	private void renderCustomShape(DiagramShape shape, Graphics2D g2){
 		CustomShapeDefinition definition = shape.getDefinition();
 		
@@ -391,7 +400,12 @@ public class BitmapRenderer {
 			renderCustomSVGShape(shape, g2);
 		}
 	}
-	
+
+	/*
+	 * @requires Arguments are not null. shape.getDefiniton().getFilename() exists and is an SVG file.
+	 * @ensures Renders the shape defined by file at shape.getDefinition().getFilename() fit to shape.getBounds() on g2.
+	 *
+	 */
 	private void renderCustomSVGShape(DiagramShape shape, Graphics2D g2){
 		CustomShapeDefinition definition = shape.getDefinition();
 		Rectangle bounds = shape.getBounds();
@@ -409,7 +423,11 @@ public class BitmapRenderer {
 			e.printStackTrace();
 		}
 	}
-	
+
+	/*
+	 * @requires Arguments are not null. shape.getDefiniton().getFilename() exists and is an PNG file.
+	 * @ensures Renders the shape defined by file at shape.getDefinition().getFilename() fit to shape.getBounds() on g2.
+	 */
 	private void renderCustomPNGShape(DiagramShape shape, Graphics2D g2){
 		CustomShapeDefinition definition = shape.getDefinition();
 		Rectangle bounds = shape.getBounds();
@@ -437,7 +455,33 @@ public class BitmapRenderer {
 		
 		g2.drawImage(graphic, xPos, yPos, width, height, null);		
 	}
-	
+
+	/*
+	 * Renders text.
+	 * @requires arguments are non-null
+	 * @ensures every TextObject in diagram.getTextObjects() is drawn onto g2.
+	 */
+	private void renderText(Diagram diagram, Graphics2D g2) {
+		Iterator textIt = diagram.getTextObjects().iterator();
+		while(textIt.hasNext()){
+			DiagramText text = (DiagramText) textIt.next();
+			g2.setFont(text.getFont());
+			if(text.hasOutline()){
+				g2.setColor(text.getOutlineColor());
+				g2.drawString(text.getText(), text.getXPos() + 1, text.getYPos());
+				g2.drawString(text.getText(), text.getXPos() - 1, text.getYPos());
+				g2.drawString(text.getText(), text.getXPos(), text.getYPos() + 1);
+				g2.drawString(text.getText(), text.getXPos(), text.getYPos() - 1);
+			}
+			g2.setColor(text.getColor());
+			g2.drawString(text.getText(), text.getXPos(), text.getYPos());
+		}
+	}
+
+	/*
+	 * @requires Argument is not null
+	 * @ensures \result = true <==> no color channel in color is greater than 200.
+	 */
 	public static boolean isColorDark(Color color){
 		int brightness = Math.max(color.getRed(), color.getGreen());
 		brightness = Math.max(color.getBlue(), brightness);
