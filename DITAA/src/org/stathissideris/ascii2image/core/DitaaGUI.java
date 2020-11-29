@@ -49,7 +49,11 @@ public class DitaaGUI{
         this.options = opts;
     }
 
+    /**
+     * Opens the DITAA GUI
+     */
     public void openGUI() {
+
         this.frame.setVisible(true);
     }
 
@@ -63,7 +67,7 @@ public class DitaaGUI{
         sourcePanel.setLayout(new BoxLayout(sourcePanel, BoxLayout.PAGE_AXIS));
 
         // Add the text area to display the file contents
-        JTextArea sourceTextArea = new JTextArea();
+        final JTextArea sourceTextArea = new JTextArea();
         sourceTextArea.setRows(30);
         sourceTextArea.setFont(new Font("monospaced", Font.PLAIN, 12));
         sourceTextArea.setEditable(false);
@@ -80,7 +84,7 @@ public class DitaaGUI{
         sourceFileLabel.setText("Selected File: ");
         filePanel.add(sourceFileLabel);
 
-        JTextField filenameField = new JTextField(20);
+        final JTextField filenameField = new JTextField(20);
         filenameField.setEditable(false);
         filePanel.add(filenameField);
 
@@ -94,7 +98,7 @@ public class DitaaGUI{
          * 4. run ditaa
          * 5. load ditaa output into the results panel
          */
-        JButton loadFileButton = new JButton("Load file...");
+        final JButton loadFileButton = new JButton("Load file...");
         loadFileButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
