@@ -24,6 +24,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.util.*;
 
+import org.apache.batik.gvt.CompositeGraphicsNode;
 import org.stathissideris.ascii2image.core.ConversionOptions;
 import org.stathissideris.ascii2image.core.Pair;
 import org.stathissideris.ascii2image.core.ProcessingOptions;
@@ -108,6 +109,7 @@ public class Diagram {
 	 * represented by grid. WARNING: It is likely that remaining bugs violate this condition in some edge cases!
 	 */
 	public Diagram(TextGrid grid, ConversionOptions options) {
+		assert (grid != null && options != null);
 
 		this.cellWidth = options.renderingOptions.getCellWidth();
 		this.cellHeight = options.renderingOptions.getCellHeight();
@@ -262,7 +264,17 @@ public class Diagram {
 			CompositeDiagramShape compShape = (CompositeDiagramShape) shapesIt.next();
 			shapes.addAll(compShape.getShapes());
 		}
-		return shapes;		
+
+		for (Object e: this.getShapes()) {
+			assert (shapes.contains(e));
+		}
+		for (Object e: this.getCompositeShapes()) {
+			for (Object o: ((CompositeDiagramShape)e).getShapes()) {
+				assert (shapes.contains(o));
+			}
+		}
+
+		return shapes;
 	}
 	
 	/**
@@ -272,11 +284,18 @@ public class Diagram {
 	 * @requires all arguments are non-null. All CellSets in sets are within the x and y-bounds of grid
 	 * @assignable sets
 	 * @ensures A minimal number of CellSets are removed from sets s.t. no CellSet 'A' in sets covers an area which is
-	 * exactly the same asthe  union of areas covered by any subset of CellSets in sets excluding A.
+	 * exactly the same as the  union of areas covered by any subset of CellSets in sets excluding A.
 	 * @return true if it removed any shapes from sets.
 	 * 
 	 */
 	private boolean removeObsoleteShapes(TextGrid grid, ArrayList<CellSet> sets){
+		assert (grid != null && sets != null);
+		for (CellSet s: sets) {
+			assert (s.getMinX() >= 0 && s.getMaxX() <= grid.getWidth() &&
+						s.getMinY() >= 0 && s.getMaxY() <= grid.getHeight());
+		}
+		int initSize = sets.size();
+
 		if (DEBUG)
 			System.out.println("******* Removing obsolete shapes *******");
 		
@@ -402,7 +421,9 @@ public class Diagram {
 				set.printAsGrid();
 			}
 		}
-		
+
+		assert((removedAny && sets.size() < initSize) || (!removedAny && sets.size() == initSize));
+
 		return removedAny;
 	}
 	
@@ -418,6 +439,7 @@ public class Diagram {
 	 * unchanged and the area of each parent shape decreases rather than increases.
 	 */
 	private void separateCommonEdges(ArrayList shapes){
+		assert (shapes != null);
 
 		float offset = getMinimumOfCellDimension() / 5;
 
@@ -475,6 +497,9 @@ public class Diagram {
 	 */
 	//TODO: removes more than it should
 	private void removeDuplicateShapes() {
+		assert (this.shapes != null);
+		int initSize = this.shapes.size();
+
 		ArrayList originalShapes = new ArrayList();
 
 		Iterator shapesIt = getShapesIterator();
@@ -493,19 +518,32 @@ public class Diagram {
 
 		shapes.clear();
 		shapes.addAll(originalShapes);
+
+		assert (shapes.size() <= initSize);
+		for (int i = 0; i < shapes.size(); i++) {
+			for (int j = 0; j < i; j++) {
+				assert (!shapes.get(i).equals(shapes.get(j)));
+			}
+		}
 	}
 
 	/*
 	 * Decomposes the unclassifiedBoundaries into a set of Open and Closed boundaries which are easily rendered.
 	 * @ assignable unclassifiedBoundaries
-	 * @ requires grid contains only 'shape' characters such as lines, corners. Does not have free text, arrows, etc.
-	 * @ ensures let open = result[0] and closed = result[1]
-	 * @ Each CellSet in open is an open line
-	 * @ Each CellSet in closed is a simple closed curve
+	 * @ requires grid does not contain text or point markers 'over' what are intended to be contiguous lines.
+	 * @ ensures let open = result[0] and closed = result[1]:
+	 * @ Each CellSet in open is an open line &&
+	 * @ Each CellSet in closed is a simple closed curve &&
 	 * @ The union of all CellSets in open and closed covered the union of cells in \old(unclassifiedBoundaries).
 	 */
 	private Pair<ArrayList<CellSet>, ArrayList<CellSet>> breakBoundariesIntoOpenAndClosed(
 			ArrayList<CellSet> unclassifiedBoundaries, TextGrid grid) {
+
+		//for assertion
+		CellSet oldUnion = new CellSet();
+		for (CellSet c: unclassifiedBoundaries) {
+			oldUnion.addSet(c);
+		}
 
 		//split boundaries to open, closed and mixed
 		ArrayList open;
@@ -595,6 +633,22 @@ public class Diagram {
 
 		} while (mixed.size() > 0);
 
+		//long assertions
+		for (CellSet c: (ArrayList<CellSet>)open) {
+			assert (c.getType(grid) == CellSet.TYPE_OPEN);
+		}
+		for (CellSet c: (ArrayList<CellSet>)closed) {
+			assert (c.getType(grid) == CellSet.TYPE_CLOSED);
+		}
+		CellSet newUnion = new CellSet();
+		for (CellSet c: (ArrayList<CellSet>)open) {
+			newUnion.addSet(c);
+		}
+		for (CellSet c: (ArrayList<CellSet>)closed) {
+			newUnion.addSet(c);
+		}
+		assert(newUnion.equals(oldUnion));
+
 		return new Pair<ArrayList<CellSet>, ArrayList<CellSet>>(open, closed);
 	}
 
@@ -602,7 +656,7 @@ public class Diagram {
 	 * Takes a list of connected components and further breaks them apart into 'boundaries' by finding sets of cells
 	 * That form interior or exterior boundaries to regions of blank space. Uses an AbstractionGrid for this, so that it
 	 * can process the 'empty space' between directly-adjacent characters.
-	 * @ requires grid contains only shape characters (lines and corners) not arrows, text, etc &&
+	 * @ requires grid does not contain text or point markers 'over' what are intended to be contiguous lines. &&
 	 * 		topologically, each CellSet in connectedComponents contains no 1-dimensional holes (i.e. each are contiguous)
 	 * @ ensures the union of all CellSets in \result matches the union off all CellSets in connectedComponents &&
 	 * @ 	topologically, each CellSet in \result contains 0 or 1 2-dimensional holes.
@@ -673,6 +727,8 @@ public class Diagram {
 	 * @ 	grid, if any such color codes exist.
 	 */
 	private void assignColorCodes(TextGrid grid) {
+		assert (this.shapes != null);
+
 		//TODO: text on line should not change its color
 		//TODO: each color tag should be assigned to the smallest containing shape (like shape tags)
 
@@ -697,6 +753,8 @@ public class Diagram {
 	 * 		definition are set according to one such markup tag.
 	 */
 	private void assignMarkup(TextGrid grid, ProcessingOptions processingOptions) {
+		assert (grid != null && processingOptions != null && this.shapes != null);
+
 		//assign markup to shapes
 		Iterator cellTagPairs = grid.findMarkupTags().iterator();
 		while(cellTagPairs.hasNext()){
@@ -808,6 +866,7 @@ public class Diagram {
 	 * @ 	any DiagramText overlapping any shapes of type TYPE_CUSTOM in this.shapes is outlined.
 	 */
 	private void extractText(TextGrid grid) {
+		assert (this.textObjects != null && this.shapes != null && grid != null);
 
 		//copy so we don't modify original
 		TextGrid workGrid = new TextGrid(grid);
@@ -922,6 +981,8 @@ public class Diagram {
 	 * @ ensures all arrowhead characters in grid are represented by shapes in this.shapes
 	 */
 	private void makeArrowheads(TextGrid grid) {
+		assert (grid != null && this.shapes != null);
+
 		//make arrowheads
 		Iterator arrowheadCells = grid.findArrowheads().iterator();
 		while(arrowheadCells.hasNext()){
@@ -939,6 +1000,8 @@ public class Diagram {
 	 * @ ensures all point markers ('*') in grid are represented by shapes in this.shapes
 	 */
 	private void makePointMarkers(TextGrid grid) {
+		assert (grid != null && this.shapes != null);
+
 		//make point markers
 		Iterator markersIt = grid.getPointMarkersOnLine().iterator();
 		while (markersIt.hasNext()) {

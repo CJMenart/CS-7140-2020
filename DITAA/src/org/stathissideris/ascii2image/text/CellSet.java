@@ -65,7 +65,7 @@ public class CellSet implements Iterable<TextGrid.Cell> {
 		return internalSet.add(cell);
 	}
 
-	public void addAll(CellSet set){
+	private void addAll(CellSet set){
 		internalSet.addAll(set.internalSet);
 	}
 	

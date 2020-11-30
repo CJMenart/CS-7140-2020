@@ -87,9 +87,11 @@ public class BitmapRenderer {
 
 	/*
 	 * @requires All arguments are non-null
-	 * @ensures writes renderToImage(diagram, options) to filename as a PNG.
+	 * @ensures \result == True ==> writes renderToImage(diagram, options) to filename as a PNG.
 	 */
 	private boolean renderToPNG(Diagram diagram, String filename, RenderingOptions options){	
+		assert (diagram != null && filename != null && options != null);
+
 		RenderedImage image = renderToImage(diagram, options);
 		
 		try {
@@ -100,6 +102,8 @@ public class BitmapRenderer {
 			System.err.println("Error: Cannot write to file "+filename);
 			return false;
 		}
+
+		assert(new File(filename).exists());
 		return true;
 	}
 
@@ -108,11 +112,15 @@ public class BitmapRenderer {
 	 * @ensures Makes a BufferedImage image with the same size as Diagram and returns render(diagram, image, options)
 	 */
 	public RenderedImage renderToImage(Diagram diagram,  RenderingOptions options){
+		assert (diagram != null && options != null);
+
 		BufferedImage image = new BufferedImage(
 					diagram.getPxWidth(),
 					diagram.getPxHeight(),
 					BufferedImage.TYPE_INT_RGB);
-		
+
+		assert(image.getWidth() == diagram.getPxWidth() && image.getHeight() == diagram.getPxHeight());
+
 		return render(diagram, image, options);
 	}
 
@@ -122,6 +130,7 @@ public class BitmapRenderer {
 	 * @ensures draws a visual representation of diagram onto image. Overwrites any existing contents in image.
 	 */
 	public RenderedImage render(Diagram diagram, BufferedImage image,  RenderingOptions options){
+		assert(diagram != null && image != null && options != null);
 
 		Graphics2D g2 = image.createGraphics();
 		g2.setColor(Color.white);
@@ -313,6 +322,7 @@ public class BitmapRenderer {
 	 * = true
 	 */
 	private BufferedImage dropShadows(Diagram diagram, BufferedImage image, boolean performAntialias) {
+		assert(diagram != null && image != null);
 
 		Graphics2D g2 = image.createGraphics();
 		Object antialiasSetting = RenderingHints.VALUE_ANTIALIAS_OFF;
@@ -375,6 +385,9 @@ public class BitmapRenderer {
 	 * @ensures The custom shape is rendered onto g2.
 	 */
 	private void renderCustomShape(DiagramShape shape, Graphics2D g2){
+		assert(shape != null && g2 != null && this.normalStroke != null && this.dashStroke != null &&
+				shape.getType() == DiagramShape.TYPE_CUSTOM && new File(shape.getDefinition().getFilename()).exists());
+
 		CustomShapeDefinition definition = shape.getDefinition();
 		
 		Rectangle bounds = shape.getBounds();
@@ -407,6 +420,9 @@ public class BitmapRenderer {
 	 *
 	 */
 	private void renderCustomSVGShape(DiagramShape shape, Graphics2D g2){
+		assert(shape != null && g2 != null && new File(shape.getDefinition().getFilename()).exists() &&
+				shape.getDefinition().getFilename().endsWith(".svg"));
+
 		CustomShapeDefinition definition = shape.getDefinition();
 		Rectangle bounds = shape.getBounds();
 		Image graphic;
@@ -429,6 +445,9 @@ public class BitmapRenderer {
 	 * @ensures Renders the shape defined by file at shape.getDefinition().getFilename() fit to shape.getBounds() on g2.
 	 */
 	private void renderCustomPNGShape(DiagramShape shape, Graphics2D g2){
+		assert(shape != null && g2 != null && new File(shape.getDefinition().getFilename()).exists() &&
+				shape.getDefinition().getFilename().endsWith(".png"));
+
 		CustomShapeDefinition definition = shape.getDefinition();
 		Rectangle bounds = shape.getBounds();
 		Image graphic = ImageHandler.instance().loadImage(definition.getFilename());
@@ -462,6 +481,8 @@ public class BitmapRenderer {
 	 * @ensures every TextObject in diagram.getTextObjects() is drawn onto g2.
 	 */
 	private void renderText(Diagram diagram, Graphics2D g2) {
+		assert (diagram != null && g2 != null);
+
 		Iterator textIt = diagram.getTextObjects().iterator();
 		while(textIt.hasNext()){
 			DiagramText text = (DiagramText) textIt.next();
@@ -483,6 +504,8 @@ public class BitmapRenderer {
 	 * @ensures \result = true <==> no color channel in color is greater than 200.
 	 */
 	public static boolean isColorDark(Color color){
+		assert (color != null);
+
 		int brightness = Math.max(color.getRed(), color.getGreen());
 		brightness = Math.max(color.getBlue(), brightness);
 		if(brightness < 200) {
