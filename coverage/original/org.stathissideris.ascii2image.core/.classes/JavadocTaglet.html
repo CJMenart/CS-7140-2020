@@ -1,0 +1,410 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html id="htmlId">
+<head>
+  <title>Coverage Report :: JavadocTaglet</title>
+  <style type="text/css">
+    @import "../../.css/coverage.css";
+  </style>
+</head>
+
+<body>
+<div class="header"></div>
+
+<div class="content">
+<div class="breadCrumbs">
+    [ <a href="../../index.html">all classes</a> ]
+    [ <a href="../index.html">org.stathissideris.ascii2image.core</a> ]
+</div>
+
+<h1>Coverage Summary for Class: JavadocTaglet (org.stathissideris.ascii2image.core)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JavadocTaglet</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/ 1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/ 18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/ 117)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<div class="sourceCode"><i>1</i>&nbsp;/* 
+<i>2</i>&nbsp; * Text Diagram Taglet 
+<i>3</i>&nbsp; *
+<i>4</i>&nbsp; * Copyright (C) 2006 Nordic Growth Market NGM AB,
+<i>5</i>&nbsp; * Mikael Brannstrom. 
+<i>6</i>&nbsp; *
+<i>7</i>&nbsp; * This program is free software; you can redistribute it and/or modify
+<i>8</i>&nbsp; * it under the terms of the GNU General Public License as published by
+<i>9</i>&nbsp; * the Free Software Foundation; either version 2 of the License, or
+<i>10</i>&nbsp; * (at your option) any later version.
+<i>11</i>&nbsp; *
+<i>12</i>&nbsp; * This program is distributed in the hope that it will be useful,
+<i>13</i>&nbsp; * but WITHOUT ANY WARRANTY; without even the implied warranty of
+<i>14</i>&nbsp; * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<i>15</i>&nbsp; * GNU General Public License for more details.
+<i>16</i>&nbsp; *
+<i>17</i>&nbsp; * You should have received a copy of the GNU General Public License
+<i>18</i>&nbsp; * along with this program; if not, write to the Free Software
+<i>19</i>&nbsp; * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+<i>20</i>&nbsp; *
+<i>21</i>&nbsp; */
+<i>22</i>&nbsp;
+<i>23</i>&nbsp;package org.stathissideris.ascii2image.core;
+<i>24</i>&nbsp;
+<i>25</i>&nbsp;import com.sun.javadoc.ProgramElementDoc;
+<i>26</i>&nbsp;import com.sun.javadoc.Tag;
+<i>27</i>&nbsp;import com.sun.tools.doclets.Taglet;
+<i>28</i>&nbsp;import com.sun.tools.doclets.internal.toolkit.Configuration;
+<i>29</i>&nbsp;import com.sun.tools.doclets.standard.Standard;
+<i>30</i>&nbsp;import java.awt.image.RenderedImage;
+<i>31</i>&nbsp;import java.io.File;
+<i>32</i>&nbsp;import java.io.IOException;
+<i>33</i>&nbsp;import java.io.UnsupportedEncodingException;
+<i>34</i>&nbsp;import java.lang.reflect.Field;
+<i>35</i>&nbsp;import java.lang.reflect.Method;
+<i>36</i>&nbsp;import java.util.Map;
+<i>37</i>&nbsp;import java.util.regex.Pattern;
+<i>38</i>&nbsp;import javax.imageio.ImageIO;
+<i>39</i>&nbsp;
+<i>40</i>&nbsp;import org.stathissideris.ascii2image.text.TextGrid;
+<i>41</i>&nbsp;import org.stathissideris.ascii2image.graphics.Diagram;
+<i>42</i>&nbsp;import org.stathissideris.ascii2image.core.ConversionOptions;
+<i>43</i>&nbsp;import org.stathissideris.ascii2image.graphics.BitmapRenderer;
+<i>44</i>&nbsp;
+<i>45</i>&nbsp;/** This class is a custom Javadoc taglet for embedding ditaa diagrams in
+<i>46</i>&nbsp; * javadoc comments. The tag is an inline which can be used in any javadoc
+<i>47</i>&nbsp; * comment. The tag can also be used in package documentation and in the 
+<i>48</i>&nbsp; * overview.
+<i>49</i>&nbsp; * This taglet assumes that the Standard Javadoc Doclet is being used.
+<i>50</i>&nbsp; * &lt;p&gt;
+<i>51</i>&nbsp; * The syntax is:&lt;br&gt;
+<i>52</i>&nbsp; * &lt;code&gt;
+<i>53</i>&nbsp; * &amp;#123;&lt;b&gt;@textdiagram&lt;/b&gt; &lt;i&gt;diagram_name&lt;/i&gt;&lt;br&gt;
+<i>54</i>&nbsp; * &lt;i&gt;the ascii art diagram&lt;/i&gt;&lt;br&gt;
+<i>55</i>&nbsp; * &amp;#125;
+<i>56</i>&nbsp; * &lt;/code&gt;
+<i>57</i>&nbsp; * &lt;p&gt;
+<i>58</i>&nbsp; * The diagram name will be used when generating the image, so that the image 
+<i>59</i>&nbsp; * can be referenced to somewhere else (by using an a-href HTML tag). The 
+<i>60</i>&nbsp; * diagram name can only contain letters, numbers and underscore. The name of 
+<i>61</i>&nbsp; * the generated image will become &quot;&amp;lt;classname&amp;gt;-&amp;lt;diagram name&amp;gt;.png&quot;. 
+<i>62</i>&nbsp; * &lt;p&gt;
+<i>63</i>&nbsp; * The syntax for the ditaa diagram is described at 
+<i>64</i>&nbsp; * &lt;a href=&quot;http://ditaa.sourceforge.net/&quot;&gt;http://ditaa.sourceforge.net/&lt;/a&gt;. 
+<i>65</i>&nbsp; * &lt;p&gt;
+<i>66</i>&nbsp; * &lt;b&gt;Note:&lt;/b&gt; The overview file needs to be named &quot;overview.html&quot; if it lies
+<i>67</i>&nbsp; * in the source path, otherwise it is sufficient that it ends with &quot;.html&quot;. 
+<i>68</i>&nbsp; *
+<i>69</i>&nbsp; * @author Mikael Brannstrom
+<i>70</i>&nbsp; */
+<i>71</i>&nbsp;public class JavadocTaglet implements Taglet {
+<i>72</i>&nbsp;
+<i>73</i>&nbsp;	private static final String NAME = &quot;textdiagram&quot;;
+<b class="nc"><i>74</i>&nbsp;	private static final Pattern FIGURE_NAME_PATTERN = Pattern.compile(&quot;\\w+&quot;);</b>
+<i>75</i>&nbsp;
+<i>76</i>&nbsp;	private final File[] srcPath;
+<i>77</i>&nbsp;	private final File dstDir;
+<i>78</i>&nbsp;
+<i>79</i>&nbsp;	private final boolean simpleMode;
+<i>80</i>&nbsp;
+<i>81</i>&nbsp;	/** Creates a new instance of TextDiagramTaglet */
+<b class="nc"><i>82</i>&nbsp;	public JavadocTaglet() {</b>
+<i>83</i>&nbsp;
+<b class="nc"><i>84</i>&nbsp;		String configSourcepath = null;</b>
+<b class="nc"><i>85</i>&nbsp;		String configDestDirName = null;</b>
+<i>86</i>&nbsp;		// Try to get configuration
+<i>87</i>&nbsp;		try {
+<i>88</i>&nbsp;			// Do this: Configuration config = Standard.htmlDoclet.configuration();
+<b class="nc"><i>89</i>&nbsp;			Field htmlDocletField = Standard.class.getField(&quot;htmlDoclet&quot;);</b>
+<b class="nc"><i>90</i>&nbsp;			Object htmlDoclet = htmlDocletField.get(null); // static field</b>
+<b class="nc"><i>91</i>&nbsp;			Method configurationMethod = htmlDoclet.getClass().getMethod(&quot;configuration&quot;, null);</b>
+<b class="nc"><i>92</i>&nbsp;			Object config = configurationMethod.invoke(htmlDoclet, null);</b>
+<i>93</i>&nbsp;			// Do this: configSourcepath = config.sourcepath;
+<b class="nc"><i>94</i>&nbsp;			Field sourcepathField = config.getClass().getField(&quot;sourcepath&quot;); </b>
+<b class="nc"><i>95</i>&nbsp;			configSourcepath = (String)sourcepathField.get(config);</b>
+<i>96</i>&nbsp;			// Do this: configDestDirName = config.destDirName;
+<b class="nc"><i>97</i>&nbsp;			Field destDirNameField = config.getClass().getField(&quot;destDirName&quot;);</b>
+<b class="nc"><i>98</i>&nbsp;			configDestDirName = (String)destDirNameField.get(config);</b>
+<b class="nc"><i>99</i>&nbsp;		} catch(Exception e) {</b>
+<b class="nc"><i>100</i>&nbsp;			warning(&quot;Could not setup taglet. Falling back to simple mode.\n&quot;+e);</b>
+<b class="nc"><i>101</i>&nbsp;		}</b>
+<i>102</i>&nbsp;
+<b class="nc"><i>103</i>&nbsp;		if(configDestDirName == null) {</b>
+<b class="nc"><i>104</i>&nbsp;			srcPath = null;</b>
+<b class="nc"><i>105</i>&nbsp;			dstDir = null;</b>
+<b class="nc"><i>106</i>&nbsp;			simpleMode = true;</b>
+<i>107</i>&nbsp;		} else {
+<i>108</i>&nbsp;			// setup srcPath
+<b class="nc"><i>109</i>&nbsp;			String[] srcPathStr = configSourcepath.split(&quot;[;:]&quot;);</b>
+<b class="nc"><i>110</i>&nbsp;			srcPath = new File[srcPathStr.length];</b>
+<b class="nc"><i>111</i>&nbsp;			for(int i=0; i&lt;srcPath.length; i++) {</b>
+<b class="nc"><i>112</i>&nbsp;				srcPath[i] = new File(srcPathStr[i]).getAbsoluteFile();</b>
+<i>113</i>&nbsp;				try {
+<b class="nc"><i>114</i>&nbsp;					srcPath[i] = srcPath[i].getCanonicalFile();</b>
+<b class="nc"><i>115</i>&nbsp;				} catch (IOException ex) {</b>
+<b class="nc"><i>116</i>&nbsp;					warning(&quot;Could not get canonical path of file: &quot;+srcPath[i]);</b>
+<b class="nc"><i>117</i>&nbsp;				}</b>
+<i>118</i>&nbsp;			}            
+<i>119</i>&nbsp;			// setup dstDir
+<b class="nc"><i>120</i>&nbsp;			dstDir = new File(configDestDirName);</b>
+<i>121</i>&nbsp;
+<b class="nc"><i>122</i>&nbsp;			simpleMode = false;</b>
+<i>123</i>&nbsp;		}
+<i>124</i>&nbsp;	}
+<i>125</i>&nbsp;
+<i>126</i>&nbsp;	public boolean inField() {
+<b class="nc"><i>127</i>&nbsp;		return false; // inline tag</b>
+<i>128</i>&nbsp;	}
+<i>129</i>&nbsp;
+<i>130</i>&nbsp;	public boolean inConstructor() {
+<b class="nc"><i>131</i>&nbsp;		return false; // inline tag</b>
+<i>132</i>&nbsp;	}
+<i>133</i>&nbsp;
+<i>134</i>&nbsp;	public boolean inMethod() {
+<b class="nc"><i>135</i>&nbsp;		return false; // inline tag</b>
+<i>136</i>&nbsp;	}
+<i>137</i>&nbsp;
+<i>138</i>&nbsp;	public boolean inOverview() {
+<b class="nc"><i>139</i>&nbsp;		return false; // inline tag</b>
+<i>140</i>&nbsp;	}
+<i>141</i>&nbsp;
+<i>142</i>&nbsp;	public boolean inPackage() {
+<b class="nc"><i>143</i>&nbsp;		return false; // inline tag</b>
+<i>144</i>&nbsp;	}
+<i>145</i>&nbsp;
+<i>146</i>&nbsp;	public boolean inType() {
+<b class="nc"><i>147</i>&nbsp;		return false; // inline tag</b>
+<i>148</i>&nbsp;	}
+<i>149</i>&nbsp;
+<i>150</i>&nbsp;	/** This tag is an inline tag. */
+<i>151</i>&nbsp;	public boolean isInlineTag() {
+<b class="nc"><i>152</i>&nbsp;		return true;</b>
+<i>153</i>&nbsp;	}
+<i>154</i>&nbsp;
+<i>155</i>&nbsp;	public String getName() {
+<b class="nc"><i>156</i>&nbsp;		return NAME;</b>
+<i>157</i>&nbsp;	}
+<i>158</i>&nbsp;
+<i>159</i>&nbsp;	/** Generates the diagram image and returns an img html tag that references
+<i>160</i>&nbsp;	 * to the image.
+<i>161</i>&nbsp;	 */
+<i>162</i>&nbsp;	public String toString(Tag tag) {
+<b class="nc"><i>163</i>&nbsp;		String text = tag.text().trim();</b>
+<i>164</i>&nbsp;		String figureName, figureText;
+<b class="nc"><i>165</i>&nbsp;		int i1=text.indexOf(&quot; &quot;), i2=text.indexOf(&quot;\n&quot;);</b>
+<b class="nc"><i>166</i>&nbsp;		if(i1 == -1 &amp;&amp; -2 == -1) {</b>
+<i>167</i>&nbsp;			return &quot;&lt;!-- Empty &quot;+getName()+&quot; tag --&gt;&quot;;
+<i>168</i>&nbsp;		}
+<i>169</i>&nbsp;
+<i>170</i>&nbsp;		int i;
+<b class="nc"><i>171</i>&nbsp;		if(i1 == -1 || i1 == -1)</b>
+<b class="nc"><i>172</i>&nbsp;			i = Math.max(i1, i2);</b>
+<i>173</i>&nbsp;		else
+<b class="nc"><i>174</i>&nbsp;			i = Math.min(i1, i2);</b>
+<i>175</i>&nbsp;
+<b class="nc"><i>176</i>&nbsp;		figureName = text.substring(0, i);</b>
+<b class="nc"><i>177</i>&nbsp;		figureText = text.substring(i+1);</b>
+<i>178</i>&nbsp;
+<b class="nc"><i>179</i>&nbsp;		if(!FIGURE_NAME_PATTERN.matcher(figureName).matches()) {</b>
+<b class="nc"><i>180</i>&nbsp;			error(&quot;Illegal &quot;+getName()+&quot; name: \&quot;&quot;+figureName+&quot;\&quot;&quot;);</b>
+<i>181</i>&nbsp;		}
+<i>182</i>&nbsp;
+<i>183</i>&nbsp;		// Convert [d] to {d} where d can be 1 character and more
+<b class="nc"><i>184</i>&nbsp;		figureText = figureText.replaceAll(&quot;\\[(\\w+)\\]&quot;, &quot;{$1}&quot;);</b>
+<i>185</i>&nbsp;
+<b class="nc"><i>186</i>&nbsp;		if(simpleMode) {</b>
+<b class="nc"><i>187</i>&nbsp;			StringBuffer strBuf = new StringBuffer();</b>
+<b class="nc"><i>188</i>&nbsp;			strBuf.append(&quot;&lt;pre&gt;&quot;);</b>
+<b class="nc"><i>189</i>&nbsp;			strBuf.append(figureText);</b>
+<b class="nc"><i>190</i>&nbsp;			strBuf.append(&quot;&lt;/pre&gt;&quot;);</b>
+<b class="nc"><i>191</i>&nbsp;			return strBuf.toString();</b>
+<i>192</i>&nbsp;		} else {
+<b class="nc"><i>193</i>&nbsp;			File outputFile = getOutputFile(tag.position().file(), figureName);</b>
+<b class="nc"><i>194</i>&nbsp;			generateImage(figureText, outputFile);</b>
+<i>195</i>&nbsp;
+<b class="nc"><i>196</i>&nbsp;			StringBuffer strBuf = new StringBuffer();</b>
+<b class="nc"><i>197</i>&nbsp;			strBuf.append(&quot;&lt;img src=\&quot;&quot;);</b>
+<b class="nc"><i>198</i>&nbsp;			strBuf.append(outputFile.getName());</b>
+<b class="nc"><i>199</i>&nbsp;			strBuf.append(&quot;\&quot; alt=\&quot;&quot;);</b>
+<b class="nc"><i>200</i>&nbsp;			strBuf.append(figureName);</b>
+<b class="nc"><i>201</i>&nbsp;			strBuf.append(&quot;\&quot;/&gt;&quot;);</b>
+<b class="nc"><i>202</i>&nbsp;			return strBuf.toString();</b>
+<i>203</i>&nbsp;		}
+<i>204</i>&nbsp;	}
+<i>205</i>&nbsp;
+<i>206</i>&nbsp;	/** Returns null since this is an inline tag.
+<i>207</i>&nbsp;	 */
+<i>208</i>&nbsp;	public String toString(Tag[] tag) {
+<b class="nc"><i>209</i>&nbsp;		return null; // should return null, this is an inline tag</b>
+<i>210</i>&nbsp;	}
+<i>211</i>&nbsp;
+<i>212</i>&nbsp;	/** Returns the path of the output file given
+<i>213</i>&nbsp;	 * the source file and the diagram name.
+<i>214</i>&nbsp;	 * @param srcFile the source file which contains the tag
+<i>215</i>&nbsp;	 * @param name the diagram name that will be used for generating the output
+<i>216</i>&nbsp;	 * filename.
+<i>217</i>&nbsp;	 */
+<i>218</i>&nbsp;	private File getOutputFile(File srcFile, String name) {
+<b class="nc"><i>219</i>&nbsp;		String relPath = getRelativePath(srcFile);</b>
+<i>220</i>&nbsp;
+<i>221</i>&nbsp;		// Special hack for the overview file
+<b class="nc"><i>222</i>&nbsp;		if(srcFile.getName().toLowerCase().equals(&quot;overview.html&quot;) ||</b>
+<b class="nc"><i>223</i>&nbsp;				(relPath == null &amp;&amp; srcFile.getName().toLowerCase().endsWith(&quot;.html&quot;))) {</b>
+<b class="nc"><i>224</i>&nbsp;			relPath = &quot;overview&quot;;</b>
+<i>225</i>&nbsp;		}
+<i>226</i>&nbsp;
+<b class="nc"><i>227</i>&nbsp;		if(relPath == null) {</b>
+<b class="nc"><i>228</i>&nbsp;			error(&quot;The file is not relative to the source path: &quot;+srcFile);</b>
+<i>229</i>&nbsp;		}
+<i>230</i>&nbsp;
+<i>231</i>&nbsp;		// get the filename and dirname
+<b class="nc"><i>232</i>&nbsp;		String dirname=null, filename=null;</b>
+<b class="nc"><i>233</i>&nbsp;		int i = relPath.lastIndexOf(File.separatorChar);</b>
+<b class="nc"><i>234</i>&nbsp;		if(i == -1) {</b>
+<b class="nc"><i>235</i>&nbsp;			filename = relPath;</b>
+<b class="nc"><i>236</i>&nbsp;		} else if(i == 0) {</b>
+<b class="nc"><i>237</i>&nbsp;			filename = relPath.substring(1);</b>
+<i>238</i>&nbsp;		} else {
+<b class="nc"><i>239</i>&nbsp;			filename = relPath.substring(i+1);</b>
+<b class="nc"><i>240</i>&nbsp;			dirname = relPath.substring(0, i);</b>
+<i>241</i>&nbsp;		}
+<i>242</i>&nbsp;
+<i>243</i>&nbsp;		// skip file ending in filename
+<b class="nc"><i>244</i>&nbsp;		i = filename.lastIndexOf(&#39;.&#39;);</b>
+<b class="nc"><i>245</i>&nbsp;		if(i != -1)</b>
+<b class="nc"><i>246</i>&nbsp;			filename = filename.substring(0, i);</b>
+<i>247</i>&nbsp;
+<i>248</i>&nbsp;		String path;
+<b class="nc"><i>249</i>&nbsp;		if(dirname == null) {</b>
+<b class="nc"><i>250</i>&nbsp;			path = filename;</b>
+<i>251</i>&nbsp;		} else {
+<b class="nc"><i>252</i>&nbsp;			path = dirname+File.separator+filename;</b>
+<i>253</i>&nbsp;		}
+<i>254</i>&nbsp;
+<b class="nc"><i>255</i>&nbsp;		return new File(dstDir, path+&quot;-&quot;+name+&quot;.png&quot;);</b>
+<i>256</i>&nbsp;	}
+<i>257</i>&nbsp;
+<i>258</i>&nbsp;	/** Returns the relative path of a (source) file.
+<i>259</i>&nbsp;	 * The path is relative to one of the source dirs specified to the
+<i>260</i>&nbsp;	 * standard doclet.
+<i>261</i>&nbsp;	 * @returns the relative path. If a relative path could not be found
+<i>262</i>&nbsp;	 * null is returned.
+<i>263</i>&nbsp;	 */
+<i>264</i>&nbsp;	private String getRelativePath(File file) {
+<b class="nc"><i>265</i>&nbsp;		file = file.getAbsoluteFile();</b>
+<i>266</i>&nbsp;		try {
+<b class="nc"><i>267</i>&nbsp;			file = file.getCanonicalFile();</b>
+<b class="nc"><i>268</i>&nbsp;		} catch (IOException ex) {</b>
+<b class="nc"><i>269</i>&nbsp;			warning(&quot;Could not get canonical path of file: &quot;+file);</b>
+<b class="nc"><i>270</i>&nbsp;		}</b>
+<b class="nc"><i>271</i>&nbsp;		String filePath = file.getAbsolutePath();</b>
+<b class="nc"><i>272</i>&nbsp;		for(int i=0; i&lt;srcPath.length; i++) {</b>
+<b class="nc"><i>273</i>&nbsp;			String s = srcPath[i].getAbsolutePath();</b>
+<b class="nc"><i>274</i>&nbsp;			if(filePath.startsWith(s)) {</b>
+<b class="nc"><i>275</i>&nbsp;				filePath = filePath.substring(s.length());</b>
+<b class="nc"><i>276</i>&nbsp;				if(filePath.startsWith(File.separator))</b>
+<b class="nc"><i>277</i>&nbsp;					filePath = filePath.substring(1);</b>
+<b class="nc"><i>278</i>&nbsp;				return filePath;</b>
+<i>279</i>&nbsp;			}
+<i>280</i>&nbsp;		}
+<b class="nc"><i>281</i>&nbsp;		return null;</b>
+<i>282</i>&nbsp;	}
+<i>283</i>&nbsp;
+<i>284</i>&nbsp;	/** Generates the image from the specified text to the output file.
+<i>285</i>&nbsp;	 * @param text the ascii art text.
+<i>286</i>&nbsp;	 * @param outputFile the file name of the image that is generated.
+<i>287</i>&nbsp;	 */
+<i>288</i>&nbsp;	private void generateImage(String text, File outputFile) {
+<b class="nc"><i>289</i>&nbsp;		ConversionOptions options = new ConversionOptions();</b>
+<b class="nc"><i>290</i>&nbsp;		TextGrid textGrid = new TextGrid();</b>
+<i>291</i>&nbsp;		try {
+<b class="nc"><i>292</i>&nbsp;			if(!textGrid.initialiseWithText(text, null)) {</b>
+<b class="nc"><i>293</i>&nbsp;				error(&quot;Cannot initialize text grid&quot;);</b>
+<i>294</i>&nbsp;			}
+<b class="nc"><i>295</i>&nbsp;		} catch (UnsupportedEncodingException e1) {</b>
+<b class="nc"><i>296</i>&nbsp;			error(&quot;Cannot initialize text grid&quot;);</b>
+<b class="nc"><i>297</i>&nbsp;		}</b>
+<b class="nc"><i>298</i>&nbsp;		Diagram diagram = new Diagram(textGrid, options);</b>
+<b class="nc"><i>299</i>&nbsp;		RenderedImage image = new BitmapRenderer().renderToImage(diagram,</b>
+<i>300</i>&nbsp;				options.renderingOptions);
+<i>301</i>&nbsp;
+<i>302</i>&nbsp;		try {
+<b class="nc"><i>303</i>&nbsp;			ImageIO.write(image, &quot;png&quot;, outputFile);</b>
+<b class="nc"><i>304</i>&nbsp;		} catch (IOException e) {</b>
+<b class="nc"><i>305</i>&nbsp;			error(&quot;Cannot write to file &quot;+outputFile.getAbsolutePath());</b>
+<b class="nc"><i>306</i>&nbsp;		}</b>
+<i>307</i>&nbsp;	}
+<i>308</i>&nbsp;
+<i>309</i>&nbsp;	/** Prints an error message and exits. */
+<i>310</i>&nbsp;	private void error(String msg) {
+<b class="nc"><i>311</i>&nbsp;		System.err.println(&quot;Error: &quot;+msg);</b>
+<b class="nc"><i>312</i>&nbsp;		System.exit(1);</b>
+<i>313</i>&nbsp;	}
+<i>314</i>&nbsp;
+<i>315</i>&nbsp;	/** Prints a warning message. */
+<i>316</i>&nbsp;	private void warning(String msg) {
+<b class="nc"><i>317</i>&nbsp;		System.err.println(&quot;Warning: &quot;+msg);</b>
+<i>318</i>&nbsp;	}
+<i>319</i>&nbsp;
+<i>320</i>&nbsp;	/** Register this Taglet.
+<i>321</i>&nbsp;	 * @param tagletMap the map to register this tag to.
+<i>322</i>&nbsp;	 */
+<i>323</i>&nbsp;	public static void register(Map tagletMap) {
+<b class="nc"><i>324</i>&nbsp;		JavadocTaglet taglet = new JavadocTaglet();</b>
+<b class="nc"><i>325</i>&nbsp;		tagletMap.put(taglet.getName(), taglet);</b>
+<i>326</i>&nbsp;	}
+<i>327</i>&nbsp;}
+</div>
+</div>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2020-11-30 09:07</div>
+</div>
+</body>
+</html>

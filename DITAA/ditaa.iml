@@ -18,6 +18,7 @@
     <libelement value="jar://$MODULE_DIR$/lib/batik-dom.jar!/" />
     <libelement value="jar://$MODULE_DIR$/lib/batik-awt-util.jar!/" />
     <libelement value="jar://$MODULE_DIR$/lib/commons-cli-1.2.jar!/" />
+    <libelement value="jar://$MODULE_DIR$/lib/hamcrest-2.2.jar!/" />
     <src_description expected_position="0">
       <src_folder value="file://$MODULE_DIR$/src" expected_position="0" />
     </src_description>
@@ -203,5 +204,6 @@
         </SOURCES>
       </library>
     </orderEntry>
+    <orderEntry type="library" name="hamcrest-2.2" level="project" />
   </component>
 </module>

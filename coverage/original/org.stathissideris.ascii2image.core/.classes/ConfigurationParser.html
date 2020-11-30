@@ -1,0 +1,297 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html id="htmlId">
+<head>
+  <title>Coverage Report :: ConfigurationParser</title>
+  <style type="text/css">
+    @import "../../.css/coverage.css";
+  </style>
+</head>
+
+<body>
+<div class="header"></div>
+
+<div class="content">
+<div class="breadCrumbs">
+    [ <a href="../../index.html">all classes</a> ]
+    [ <a href="../index.html">org.stathissideris.ascii2image.core</a> ]
+</div>
+
+<h1>Coverage Summary for Class: ConfigurationParser (org.stathissideris.ascii2image.core)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ConfigurationParser</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/ 8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/ 24)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">ConfigurationParser$XMLHandler</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/ 2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/ 59)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/ 10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/ 83)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<div class="sourceCode"><i>1</i>&nbsp;/*
+<i>2</i>&nbsp; * DiTAA - Diagrams Through Ascii Art
+<i>3</i>&nbsp; * 
+<i>4</i>&nbsp; * Copyright (C) 2004 Efstathios Sideris
+<i>5</i>&nbsp; *
+<i>6</i>&nbsp; * This program is free software; you can redistribute it and/or
+<i>7</i>&nbsp; * modify it under the terms of the GNU General Public License
+<i>8</i>&nbsp; * as published by the Free Software Foundation; either version 2
+<i>9</i>&nbsp; * of the License, or (at your option) any later version.
+<i>10</i>&nbsp; *
+<i>11</i>&nbsp; * This program is distributed in the hope that it will be useful,
+<i>12</i>&nbsp; * but WITHOUT ANY WARRANTY; without even the implied warranty of
+<i>13</i>&nbsp; * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<i>14</i>&nbsp; * GNU General Public License for more details.
+<i>15</i>&nbsp; *
+<i>16</i>&nbsp; * You should have received a copy of the GNU General Public License
+<i>17</i>&nbsp; * along with this program; if not, write to the Free Software
+<i>18</i>&nbsp; * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+<i>19</i>&nbsp; *   
+<i>20</i>&nbsp; */
+<i>21</i>&nbsp;package org.stathissideris.ascii2image.core;
+<i>22</i>&nbsp;
+<i>23</i>&nbsp;import java.io.File;
+<i>24</i>&nbsp;import java.io.IOException;
+<i>25</i>&nbsp;import java.util.Collection;
+<i>26</i>&nbsp;import java.util.HashMap;
+<i>27</i>&nbsp;
+<i>28</i>&nbsp;import javax.xml.parsers.ParserConfigurationException;
+<i>29</i>&nbsp;import javax.xml.parsers.SAXParser;
+<i>30</i>&nbsp;import javax.xml.parsers.SAXParserFactory;
+<i>31</i>&nbsp;
+<i>32</i>&nbsp;import org.stathissideris.ascii2image.graphics.CustomShapeDefinition;
+<i>33</i>&nbsp;import org.xml.sax.Attributes;
+<i>34</i>&nbsp;import org.xml.sax.SAXException;
+<i>35</i>&nbsp;import org.xml.sax.helpers.DefaultHandler;
+<i>36</i>&nbsp;
+<b class="nc"><i>37</i>&nbsp;public class ConfigurationParser {</b>
+<i>38</i>&nbsp;
+<i>39</i>&nbsp;	private static final boolean DEBUG = true;
+<i>40</i>&nbsp;	
+<i>41</i>&nbsp;	private static final String INLCUDE_TAG_NAME = &quot;include&quot;;
+<i>42</i>&nbsp;	private static final String SHAPE_TAG_NAME = &quot;shape&quot;;
+<i>43</i>&nbsp;	private static final String SHAPE_GROUP_TAG_NAME = &quot;shapes&quot;;
+<i>44</i>&nbsp;	
+<b class="nc"><i>45</i>&nbsp;	private String currentDir = &quot;&quot;;</b>
+<i>46</i>&nbsp;	private File configFile;
+<i>47</i>&nbsp;	
+<b class="nc"><i>48</i>&nbsp;	private HashMap&lt;String, CustomShapeDefinition&gt; shapeDefinitions =</b>
+<i>49</i>&nbsp;		new HashMap&lt;String, CustomShapeDefinition&gt;();
+<i>50</i>&nbsp;	
+<i>51</i>&nbsp;	public Collection&lt;CustomShapeDefinition&gt; getShapeDefinitions() {
+<b class="nc"><i>52</i>&nbsp;		return shapeDefinitions.values();</b>
+<i>53</i>&nbsp;	}
+<i>54</i>&nbsp;
+<i>55</i>&nbsp;	public HashMap&lt;String, CustomShapeDefinition&gt; getShapeDefinitionsHash() {
+<b class="nc"><i>56</i>&nbsp;		return shapeDefinitions;</b>
+<i>57</i>&nbsp;	}
+<i>58</i>&nbsp;	
+<i>59</i>&nbsp;	public void parseFile(File file)
+<i>60</i>&nbsp;		throws ParserConfigurationException, SAXException, IOException
+<i>61</i>&nbsp;	{
+<b class="nc"><i>62</i>&nbsp;		configFile = file;</b>
+<i>63</i>&nbsp;		
+<b class="nc"><i>64</i>&nbsp;		DefaultHandler handler = new XMLHandler();</b>
+<i>65</i>&nbsp;		
+<i>66</i>&nbsp;		// Use the default (non-validating) parser
+<b class="nc"><i>67</i>&nbsp;		SAXParserFactory factory = SAXParserFactory.newInstance();</b>
+<i>68</i>&nbsp;
+<b class="nc"><i>69</i>&nbsp;		SAXParser saxParser = factory.newSAXParser();</b>
+<b class="nc"><i>70</i>&nbsp;		saxParser.parse(file, handler);</b>
+<i>71</i>&nbsp;	}
+<i>72</i>&nbsp;	
+<b class="nc"><i>73</i>&nbsp;	private class XMLHandler extends DefaultHandler{</b>
+<i>74</i>&nbsp;		public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+<b class="nc"><i>75</i>&nbsp;			if(qName.equals(SHAPE_GROUP_TAG_NAME)){</b>
+<b class="nc"><i>76</i>&nbsp;				if(attributes.getLength() == 1){</b>
+<b class="nc"><i>77</i>&nbsp;					currentDir = attributes.getValue(0).trim();</b>
+<b class="nc"><i>78</i>&nbsp;					if(currentDir.equals(&quot;&quot;)) currentDir = configFile.getParentFile().getAbsolutePath();</b>
+<i>79</i>&nbsp;				} else {
+<i>80</i>&nbsp;					//the dir that contains the config file:
+<b class="nc"><i>81</i>&nbsp;					currentDir = configFile.getParentFile().getAbsolutePath();</b>
+<i>82</i>&nbsp;				}
+<i>83</i>&nbsp;			}
+<b class="nc"><i>84</i>&nbsp;			if(qName.equals(SHAPE_TAG_NAME)){</b>
+<b class="nc"><i>85</i>&nbsp;				CustomShapeDefinition definition = new CustomShapeDefinition();</b>
+<i>86</i>&nbsp;				
+<b class="nc"><i>87</i>&nbsp;				int len = attributes.getLength();</b>
+<b class="nc"><i>88</i>&nbsp;				for(int i = 0; i &lt; len; i++){</b>
+<b class="nc"><i>89</i>&nbsp;					String name = attributes.getQName(i);</b>
+<b class="nc"><i>90</i>&nbsp;					String value = attributes.getValue(i);</b>
+<i>91</i>&nbsp;					
+<b class="nc"><i>92</i>&nbsp;					if(name.equals(&quot;tag&quot;)){</b>
+<b class="nc"><i>93</i>&nbsp;						definition.setTag(value);</b>
+<b class="nc"><i>94</i>&nbsp;					} else if(name.equals(&quot;stretch&quot;)){</b>
+<b class="nc"><i>95</i>&nbsp;						definition.setStretches(getBooleanFromAttributeValue(value));</b>
+<b class="nc"><i>96</i>&nbsp;					} else if(name.equals(&quot;border&quot;)){</b>
+<b class="nc"><i>97</i>&nbsp;						definition.setHasBorder(getBooleanFromAttributeValue(value));</b>
+<b class="nc"><i>98</i>&nbsp;					} else if(name.equals(&quot;shadow&quot;)){</b>
+<b class="nc"><i>99</i>&nbsp;						definition.setDropsShadow(getBooleanFromAttributeValue(value));</b>
+<b class="nc"><i>100</i>&nbsp;					} else if(name.equals(&quot;comment&quot;)){</b>
+<b class="nc"><i>101</i>&nbsp;						definition.setComment(value);</b>
+<b class="nc"><i>102</i>&nbsp;					} else if(name.equals(&quot;filename&quot;)){</b>
+<b class="nc"><i>103</i>&nbsp;						File file = new File(value);</b>
+<b class="nc"><i>104</i>&nbsp;						if(file.isAbsolute()){</b>
+<b class="nc"><i>105</i>&nbsp;							definition.setFilename(value);</b>
+<i>106</i>&nbsp;						} else { //relative to the location of the config file or to the group&#39;s base dir
+<b class="nc"><i>107</i>&nbsp;							definition.setFilename(createFilename(currentDir, value));</b>
+<i>108</i>&nbsp;						}
+<i>109</i>&nbsp;					}
+<i>110</i>&nbsp;				}
+<i>111</i>&nbsp;				
+<b class="nc"><i>112</i>&nbsp;				if(shapeDefinitions.containsKey(definition.getTag())){</b>
+<b class="nc"><i>113</i>&nbsp;					CustomShapeDefinition oldDef = shapeDefinitions.get(definition.getTag());</b>
+<b class="nc"><i>114</i>&nbsp;					System.err.println(</b>
+<b class="nc"><i>115</i>&nbsp;						&quot;*** Warning: shape \&quot;&quot;+oldDef.getTag()+&quot;\&quot; (file: &quot;</b>
+<b class="nc"><i>116</i>&nbsp;						+oldDef.getFilename()+&quot;) has been redefined as file: &quot;</b>
+<b class="nc"><i>117</i>&nbsp;						+definition.getFilename()</b>
+<i>118</i>&nbsp;					);
+<i>119</i>&nbsp;				}
+<i>120</i>&nbsp;				
+<b class="nc"><i>121</i>&nbsp;				File file = new File(definition.getFilename());</b>
+<b class="nc"><i>122</i>&nbsp;				if(file.exists()){</b>
+<b class="nc"><i>123</i>&nbsp;					shapeDefinitions.put(definition.getTag(), definition);</b>
+<b class="nc"><i>124</i>&nbsp;					if(DEBUG) System.out.println(definition);</b>
+<i>125</i>&nbsp;				} else {
+<b class="nc"><i>126</i>&nbsp;					System.err.println(&quot;File &quot;+file+&quot; does not exist, skipping tag &quot;+definition.getTag());</b>
+<i>127</i>&nbsp;				}
+<i>128</i>&nbsp;				
+<i>129</i>&nbsp;			}
+<b class="nc"><i>130</i>&nbsp;			if(qName.equals(INLCUDE_TAG_NAME)){</b>
+<b class="nc"><i>131</i>&nbsp;				if(attributes.getLength() == 1){</b>
+<b class="nc"><i>132</i>&nbsp;					File includedFile = new File(attributes.getValue(0).trim());</b>
+<i>133</i>&nbsp;					
+<b class="nc"><i>134</i>&nbsp;					if(!includedFile.isAbsolute()){</b>
+<b class="nc"><i>135</i>&nbsp;						includedFile = new File(</b>
+<b class="nc"><i>136</i>&nbsp;								createFilename(</b>
+<b class="nc"><i>137</i>&nbsp;									configFile.getParentFile().getAbsolutePath(),</b>
+<b class="nc"><i>138</i>&nbsp;									includedFile.getPath()));</b>
+<i>139</i>&nbsp;					}
+<i>140</i>&nbsp;					
+<b class="nc"><i>141</i>&nbsp;					if(!includedFile.exists()){</b>
+<b class="nc"><i>142</i>&nbsp;						System.err.println(&quot;Included file &quot;+includedFile+&quot; does not exist, skipping&quot;);</b>
+<i>143</i>&nbsp;						return;
+<i>144</i>&nbsp;					}
+<i>145</i>&nbsp;					
+<b class="nc"><i>146</i>&nbsp;					ConfigurationParser configParser = new ConfigurationParser();</b>
+<i>147</i>&nbsp;					try {
+<b class="nc"><i>148</i>&nbsp;						configParser.parseFile(includedFile);</b>
+<b class="nc"><i>149</i>&nbsp;					} catch (ParserConfigurationException e) {</b>
+<b class="nc"><i>150</i>&nbsp;						e.printStackTrace();</b>
+<b class="nc"><i>151</i>&nbsp;					} catch (SAXException e) {</b>
+<b class="nc"><i>152</i>&nbsp;						e.printStackTrace();</b>
+<b class="nc"><i>153</i>&nbsp;					} catch (IOException e) {</b>
+<b class="nc"><i>154</i>&nbsp;						e.printStackTrace();</b>
+<b class="nc"><i>155</i>&nbsp;					}</b>
+<b class="nc"><i>156</i>&nbsp;					HashMap&lt;String, CustomShapeDefinition&gt; shapes = configParser.getShapeDefinitionsHash();</b>
+<b class="nc"><i>157</i>&nbsp;					shapeDefinitions.putAll(shapes);</b>
+<i>158</i>&nbsp;				}
+<i>159</i>&nbsp;			}
+<i>160</i>&nbsp;		}
+<i>161</i>&nbsp;	}
+<i>162</i>&nbsp;	
+<i>163</i>&nbsp;	private String createFilename(String baseDir, String filename){
+<b class="nc"><i>164</i>&nbsp;		if(baseDir == null || baseDir.trim().equals(&quot;&quot;)){</b>
+<b class="nc"><i>165</i>&nbsp;			return filename;</b>
+<i>166</i>&nbsp;		}
+<b class="nc"><i>167</i>&nbsp;		if(baseDir.endsWith(File.separator)){</b>
+<b class="nc"><i>168</i>&nbsp;			return baseDir + filename;</b>
+<i>169</i>&nbsp;		}
+<b class="nc"><i>170</i>&nbsp;		return baseDir + File.separator + filename;</b>
+<i>171</i>&nbsp;	}
+<i>172</i>&nbsp;	
+<i>173</i>&nbsp;	private boolean getBooleanFromAttributeValue(String value){
+<b class="nc"><i>174</i>&nbsp;		value = value.toLowerCase();</b>
+<b class="nc"><i>175</i>&nbsp;		if(&quot;no&quot;.equals(value)) return false;</b>
+<b class="nc"><i>176</i>&nbsp;		if(&quot;false&quot;.equals(value)) return false;</b>
+<b class="nc"><i>177</i>&nbsp;		if(&quot;yes&quot;.equals(value)) return true;</b>
+<b class="nc"><i>178</i>&nbsp;		if(&quot;true&quot;.equals(value)) return true;</b>
+<b class="nc"><i>179</i>&nbsp;		throw new IllegalArgumentException(&quot;value &quot;+value+&quot; cannot be interpreted as a boolean&quot;);</b>
+<i>180</i>&nbsp;	}
+<i>181</i>&nbsp;	
+<i>182</i>&nbsp;	public static void main(String argv[]) throws ParserConfigurationException, SAXException, IOException {
+<b class="nc"><i>183</i>&nbsp;		ConfigurationParser parser = new ConfigurationParser();</b>
+<b class="nc"><i>184</i>&nbsp;		parser.parseFile(new File(&quot;config.xml&quot;));</b>
+<b class="nc"><i>185</i>&nbsp;		parser.getShapeDefinitions();</b>
+<i>186</i>&nbsp;	}
+<i>187</i>&nbsp;	
+<i>188</i>&nbsp;}
+</div>
+</div>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2020-11-30 09:07</div>
+</div>
+</body>
+</html>
