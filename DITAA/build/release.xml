@@ -35,7 +35,7 @@
 	</target>
 
 	<target name="compile" depends="prep" description="Compiles ascii2image code">
-		<javac destdir="${rootDir}/jar-temp" source="1.6" classpathref="build.classpath">
+		<javac destdir="${rootDir}/jar-temp" source="1.7" classpathref="build.classpath">
 			<src path="${rootDir}/src" />
 			<exclude name="org/stathissideris/ascii2image/test/**" />
 		</javac>
