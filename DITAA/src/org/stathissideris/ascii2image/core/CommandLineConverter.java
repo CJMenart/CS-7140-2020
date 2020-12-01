@@ -147,7 +147,7 @@ public class CommandLineConverter {
 		
 		args = cmdLine.getArgs();
 
-		//TODO: Start GUI in this case? Fail if they try to use HTML mode with GUI? ~Chris M
+		//Start GUI in this case? Fail if they try to use HTML mode with GUI.
 		boolean isGUI = false;
 		if(args.length == 0) {
 			isGUI = true;

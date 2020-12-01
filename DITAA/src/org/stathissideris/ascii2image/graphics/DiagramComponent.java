@@ -76,7 +76,7 @@ public abstract class DiagramComponent {
 	}
 
 	public static DiagramComponent createClosedFromBoundaryCells(TextGrid grid, CellSet cells, int cellWidth, int cellHeight, boolean allRound){
-		if(cells.getType(grid) == CellSet.TYPE_OPEN) throw new IllegalArgumentException("CellSet is closed and cannot be handled by this method");
+		if(cells.getType(grid) == CellSet.TYPE_OPEN) throw new IllegalArgumentException("CellSet is open and cannot be handled by this method");
 		if(cells.size() < 2) return null;
 		
 		DiagramShape shape = new DiagramShape();
