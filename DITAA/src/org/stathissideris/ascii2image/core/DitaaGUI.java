@@ -29,6 +29,10 @@ public class DitaaGUI{
     // the options to pass to DITAA
     ConversionOptions options = new ConversionOptions();
 
+    /**
+     * Creates a new default DITAA GUI
+     *
+     */ 
     public DitaaGUI(){
         this.frame = new JFrame("DITAA GUI");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -43,6 +47,9 @@ public class DitaaGUI{
         this.frame.pack();
     }
 
+    /**
+     * Creates a new DITAA GUI which will use the provided conversion options for all invocations of DITAA
+     */ 
     public DitaaGUI(ConversionOptions opts){
         this();
 
@@ -53,7 +60,6 @@ public class DitaaGUI{
      * Opens the DITAA GUI
      */
     public void openGUI() {
-
         this.frame.setVisible(true);
     }
 
@@ -88,7 +94,7 @@ public class DitaaGUI{
         filenameField.setEditable(false);
         filePanel.add(filenameField);
 
-        /**
+        /*
          * A button to load the file - most of the logic is driven by the following action which is performed after
          * the file is selected and loaded:
          * 1. file loaded
@@ -154,6 +160,12 @@ public class DitaaGUI{
         return sourcePanel;
     }
 
+
+    /**
+     * Creates the output content panel which provides the functions of previewing DITAA output and saving
+     *
+     * @return the JPanel representing the content panel
+     */
     private JPanel createOutputContentPane(){
         JPanel sourcePanel = new JPanel();
         sourcePanel.setLayout(new BoxLayout(sourcePanel, BoxLayout.PAGE_AXIS));
@@ -195,6 +207,11 @@ public class DitaaGUI{
         return sourcePanel;
     }
 
+    /**
+     * Runs DITAA on the currently selected input file.
+     *
+     * @return String representing the path to the output diagram.
+     */
     private String runDitaa(){
         // get a temporary file path
         Path outFilePath = null;
@@ -210,6 +227,9 @@ public class DitaaGUI{
         return outFilePath.toString();
     }
 
+    /**
+     * Updates the image preview to show the most recently computed DITAA diagram.
+     */
     private void updateOutputImage(){
         if(this.outputImagePanel != null && this.sourceFileValid && this.tempOutputLoc != null && this.tempOutputLoc.length() > 0){
             try{
@@ -226,15 +246,12 @@ public class DitaaGUI{
         }
     }
 
+    /**
+     * Clears the currently displayed DITAA diagram.
+     */
     private void clearOutputImage(){
         if(this.outputImagePanel != null){
             this.outputImagePanel.setIcon(null);
         }
     }
-
-
-    //TODO needs events for file selection, hitting 'save'
-
-    //TODO anything this wants to use from CommandLineConverter probably needs factoring out into own class??
-
 }
