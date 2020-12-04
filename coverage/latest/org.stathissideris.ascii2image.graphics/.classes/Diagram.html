@@ -1,0 +1,1217 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html id="htmlId">
+<head>
+  <title>Coverage Report :: Diagram</title>
+  <style type="text/css">
+    @import "../../.css/coverage.css";
+  </style>
+</head>
+
+<body>
+<div class="header"></div>
+
+<div class="content">
+<div class="breadCrumbs">
+    [ <a href="../../index.html">all classes</a> ]
+    [ <a href="../index.html">org.stathissideris.ascii2image.graphics</a> ]
+</div>
+
+<h1>Coverage Summary for Class: Diagram (org.stathissideris.ascii2image.graphics)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Diagram</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/ 1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (38/ 38)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    88.3%
+  </span>
+  <span class="absValue">
+    (432/ 489)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<div class="sourceCode"><i>1</i>&nbsp;/*
+<i>2</i>&nbsp; * DiTAA - Diagrams Through Ascii Art
+<i>3</i>&nbsp; * 
+<i>4</i>&nbsp; * Copyright (C) 2004 Efstathios Sideris
+<i>5</i>&nbsp; *
+<i>6</i>&nbsp; * This program is free software; you can redistribute it and/or
+<i>7</i>&nbsp; * modify it under the terms of the GNU General Public License
+<i>8</i>&nbsp; * as published by the Free Software Foundation; either version 2
+<i>9</i>&nbsp; * of the License, or (at your option) any later version.
+<i>10</i>&nbsp; *
+<i>11</i>&nbsp; * This program is distributed in the hope that it will be useful,
+<i>12</i>&nbsp; * but WITHOUT ANY WARRANTY; without even the implied warranty of
+<i>13</i>&nbsp; * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<i>14</i>&nbsp; * GNU General Public License for more details.
+<i>15</i>&nbsp; *
+<i>16</i>&nbsp; * You should have received a copy of the GNU General Public License
+<i>17</i>&nbsp; * along with this program; if not, write to the Free Software
+<i>18</i>&nbsp; * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+<i>19</i>&nbsp; *   
+<i>20</i>&nbsp; */
+<i>21</i>&nbsp;package org.stathissideris.ascii2image.graphics;
+<i>22</i>&nbsp;
+<i>23</i>&nbsp;import java.awt.Color;
+<i>24</i>&nbsp;import java.awt.Font;
+<i>25</i>&nbsp;import java.util.*;
+<i>26</i>&nbsp;
+<i>27</i>&nbsp;import org.apache.batik.gvt.CompositeGraphicsNode;
+<i>28</i>&nbsp;import org.stathissideris.ascii2image.core.ConversionOptions;
+<i>29</i>&nbsp;import org.stathissideris.ascii2image.core.Pair;
+<i>30</i>&nbsp;import org.stathissideris.ascii2image.core.ProcessingOptions;
+<i>31</i>&nbsp;import org.stathissideris.ascii2image.text.*;
+<i>32</i>&nbsp;
+<i>33</i>&nbsp;/**
+<i>34</i>&nbsp; * @ invariant: Every DiagramComponent in shapes, compositeShapes and textObjects has x-bounds between 0 and this.width
+<i>35</i>&nbsp; * 				Every DiagramComponent in shapes, compositeShapes and textObjects has y-bounds between 0 and this.height
+<i>36</i>&nbsp; *
+<i>37</i>&nbsp; * @author Efstathios Sideris
+<i>38</i>&nbsp; */
+<b class="fc"><i>39</i>&nbsp;public class Diagram {</b>
+<i>40</i>&nbsp;
+<i>41</i>&nbsp;	private static final boolean DEBUG = false;
+<i>42</i>&nbsp;	private static final boolean VERBOSE_DEBUG = false;
+<i>43</i>&nbsp;
+<b class="fc"><i>44</i>&nbsp;	private ArrayList shapes = new ArrayList();</b>
+<b class="fc"><i>45</i>&nbsp;	private ArrayList compositeShapes = new ArrayList();</b>
+<b class="fc"><i>46</i>&nbsp;	private ArrayList textObjects = new ArrayList();</b>
+<i>47</i>&nbsp;	
+<i>48</i>&nbsp;	private int pxWidth, pxHeight;
+<i>49</i>&nbsp;	private int cellWidth, cellHeight;
+<i>50</i>&nbsp;	
+<i>51</i>&nbsp;	
+<i>52</i>&nbsp;	/**
+<i>53</i>&nbsp;	 * 
+<i>54</i>&nbsp;	 * &lt;p&gt;An outline of the inner workings of this very important (and monstrous)
+<i>55</i>&nbsp;	 * constructor is presented here. Boundary processing is the first step
+<i>56</i>&nbsp;	 * of the process:&lt;/p&gt;
+<i>57</i>&nbsp;	 * 
+<i>58</i>&nbsp;	 * &lt;ol&gt;
+<i>59</i>&nbsp;	 *   &lt;li&gt;Copy the grid into a work grid and remove all type-on-line
+<i>60</i>&nbsp;	 *       and point markers from the work grid&lt;/li&gt;
+<i>61</i>&nbsp;	 *   &lt;li&gt;Split grid into distinct shapes by plotting the grid
+<i>62</i>&nbsp;	 * 	     onto an AbstractionGrid and its getDistinctShapes() method.&lt;/li&gt;
+<i>63</i>&nbsp;	 *   &lt;li&gt;Find all the possible boundary sets of each of the
+<i>64</i>&nbsp;	 *       distinct shapes. This can produce duplicate shapes (if the boundaries
+<i>65</i>&nbsp;	 *       are the same when filling from the inside and the outside).&lt;/li&gt;
+<i>66</i>&nbsp;	 *   &lt;li&gt;Remove duplicate boundaries.&lt;/li&gt;
+<i>67</i>&nbsp;	 *   &lt;li&gt;Remove obsolete boundaries. Obsolete boundaries are the ones that are
+<i>68</i>&nbsp;	 *       the sum of their parts when plotted as filled shapes. (see method
+<i>69</i>&nbsp;	 *       removeObsoleteShapes())&lt;/li&gt;
+<i>70</i>&nbsp;	 *   &lt;li&gt;Seperate the found boundary sets to open, closed or mixed
+<i>71</i>&nbsp;	 *       (See CellSet class on how its done).&lt;/li&gt;
+<i>72</i>&nbsp;	 *   &lt;li&gt;Are there any closed boundaries?
+<i>73</i>&nbsp;	 *        &lt;ul&gt;
+<i>74</i>&nbsp;	 *           &lt;li&gt;YES. Subtract all the closed boundaries from each of the
+<i>75</i>&nbsp;	 *           open ones. That should convert the mixed shapes into open.&lt;/li&gt;
+<i>76</i>&nbsp;	 *           &lt;li&gt;NO. In this (harder) case, we use the method
+<i>77</i>&nbsp;	 *           breakTrulyMixedBoundaries() of CellSet to break boundaries
+<i>78</i>&nbsp;	 *           into open and closed shapes (would work in any case, but it&#39;s
+<i>79</i>&nbsp;	 *           probably slower than the other method). This method is based
+<i>80</i>&nbsp;	 *           on tracing from the lines&#39; ends and splitting when we get to
+<i>81</i>&nbsp;	 *           an intersection.&lt;/li&gt;
+<i>82</i>&nbsp;	 *        &lt;/ul&gt;
+<i>83</i>&nbsp;	 *   &lt;/li&gt;
+<i>84</i>&nbsp;	 *   &lt;li&gt;If we had to eliminate any mixed shapes, we seperate the found
+<i>85</i>&nbsp;	 *   boundary sets again to open, closed or mixed.&lt;/li&gt;
+<i>86</i>&nbsp;	 * &lt;/ol&gt;
+<i>87</i>&nbsp;	 * 
+<i>88</i>&nbsp;	 * &lt;p&gt;At this stage, the boundary processing is all complete and we
+<i>89</i>&nbsp;	 * proceed with using those boundaries to create the shapes:&lt;/p&gt;
+<i>90</i>&nbsp;	 * 
+<i>91</i>&nbsp;	 * &lt;ol&gt;
+<i>92</i>&nbsp;	 *   &lt;li&gt;Create closed shapes.&lt;/li&gt;
+<i>93</i>&nbsp;	 *   &lt;li&gt;Create open shapes. That&#39;s when the line end corrections are
+<i>94</i>&nbsp;	 *   also applied, concerning the positioning of the ends of lines
+<i>95</i>&nbsp;	 *   see methods connectEndsToAnchors() and moveEndsToCellEdges() of
+<i>96</i>&nbsp;	 *   DiagramShape.&lt;/li&gt;
+<i>97</i>&nbsp;	 *   &lt;li&gt;Assign color codes to closed shapes.&lt;/li&gt;
+<i>98</i>&nbsp;	 *   &lt;li&gt;Assing extended markup tags to closed shapes.&lt;/p&gt;
+<i>99</i>&nbsp;	 *   &lt;li&gt;Create arrowheads.&lt;/p&gt;
+<i>100</i>&nbsp;	 *   &lt;li&gt;Create point markers.&lt;/p&gt;
+<i>101</i>&nbsp;	 * &lt;/ol&gt;
+<i>102</i>&nbsp;	 * 
+<i>103</i>&nbsp;	 * &lt;p&gt;Finally, the text processing occurs: [pending]&lt;/p&gt;
+<i>104</i>&nbsp;	 * 
+<i>105</i>&nbsp;	 * @param grid
+<i>106</i>&nbsp;	 * @param options
+<i>107</i>&nbsp;	 * @requires all arguments are non-null
+<i>108</i>&nbsp;	 * @ensures this.shapes, this.compositeShapes and this.textObjects represent every entity in the ASCII art
+<i>109</i>&nbsp;	 * represented by grid. WARNING: It is likely that remaining bugs violate this condition in some edge cases!
+<i>110</i>&nbsp;	 */
+<b class="fc"><i>111</i>&nbsp;	public Diagram(TextGrid grid, ConversionOptions options) {</b>
+<b class="fc"><i>112</i>&nbsp;		assert (grid != null &amp;&amp; options != null);</b>
+<i>113</i>&nbsp;
+<b class="fc"><i>114</i>&nbsp;		this.cellWidth = options.renderingOptions.getCellWidth();</b>
+<b class="fc"><i>115</i>&nbsp;		this.cellHeight = options.renderingOptions.getCellHeight();</b>
+<i>116</i>&nbsp;		
+<b class="fc"><i>117</i>&nbsp;		pxWidth = grid.getWidth() * cellWidth;</b>
+<b class="fc"><i>118</i>&nbsp;		pxHeight = grid.getHeight() * cellHeight;</b>
+<i>119</i>&nbsp;		
+<b class="fc"><i>120</i>&nbsp;		TextGrid workGrid = new TextGrid(grid);</b>
+<b class="fc"><i>121</i>&nbsp;		workGrid.replaceTypeOnLine();</b>
+<b class="fc"><i>122</i>&nbsp;		workGrid.replacePointMarkersOnLine();</b>
+<i>123</i>&nbsp;		if(DEBUG) workGrid.printDebug();
+<i>124</i>&nbsp;		
+<b class="fc"><i>125</i>&nbsp;		int width = grid.getWidth();</b>
+<b class="fc"><i>126</i>&nbsp;		int height = grid.getHeight();</b>
+<i>127</i>&nbsp;
+<i>128</i>&nbsp;		//split distinct shapes using AbstractionGrid 
+<b class="fc"><i>129</i>&nbsp;		AbstractionGrid temp = new AbstractionGrid(workGrid, workGrid.getAllBoundaries());</b>
+<b class="fc"><i>130</i>&nbsp;		ArrayList connectedComponents = temp.getDistinctShapes();</b>
+<i>131</i>&nbsp;		
+<i>132</i>&nbsp;		if(DEBUG){
+<i>133</i>&nbsp;			System.out.println(&quot;******* Distinct shapes found using AbstractionGrid *******&quot;);
+<i>134</i>&nbsp;			Iterator dit = connectedComponents.iterator();
+<i>135</i>&nbsp;			while (dit.hasNext()) {
+<i>136</i>&nbsp;				CellSet set = (CellSet) dit.next();
+<i>137</i>&nbsp;				set.printAsGrid();
+<i>138</i>&nbsp;			}
+<i>139</i>&nbsp;			System.out.println(&quot;******* Same set of shapes after processing them by filling *******&quot;);
+<i>140</i>&nbsp;		}
+<i>141</i>&nbsp;
+<i>142</i>&nbsp;		//Find all the boundaries by using the special version of the filling method
+<i>143</i>&nbsp;		//(fills in a different buffer than the buffer it reads from)
+<b class="fc"><i>144</i>&nbsp;		ArrayList boundarySetsStep2 = findInteriorExteriorBoundaries(connectedComponents, workGrid);</b>
+<i>145</i>&nbsp;
+<i>146</i>&nbsp;		//This seems to be a bug below...we are calling removeDuplicateSets twice? ~ CHRIS MENART
+<i>147</i>&nbsp;		if (DEBUG)
+<i>148</i>&nbsp;			System.out.println(&quot;******* Removed duplicates *******&quot;);
+<i>149</i>&nbsp;
+<b class="fc"><i>150</i>&nbsp;		boundarySetsStep2 = CellSet.removeDuplicateSets(boundarySetsStep2);</b>
+<i>151</i>&nbsp;
+<i>152</i>&nbsp;		if(DEBUG){
+<i>153</i>&nbsp;			Iterator dit = boundarySetsStep2.iterator();
+<i>154</i>&nbsp;			while (dit.hasNext()) {
+<i>155</i>&nbsp;				CellSet set = (CellSet) dit.next();
+<i>156</i>&nbsp;				set.printAsGrid();
+<i>157</i>&nbsp;			}
+<i>158</i>&nbsp;		}
+<i>159</i>&nbsp;
+<b class="fc"><i>160</i>&nbsp;		int originalSize = boundarySetsStep2.size();</b>
+<b class="fc"><i>161</i>&nbsp;		boundarySetsStep2 = CellSet.removeDuplicateSets(boundarySetsStep2);</b>
+<i>162</i>&nbsp;		if(DEBUG) {
+<i>163</i>&nbsp;			System.out.println(
+<i>164</i>&nbsp;				&quot;******* Removed duplicates: there were &quot;
+<i>165</i>&nbsp;				+originalSize
+<i>166</i>&nbsp;				+&quot; shapes and now there are &quot;
+<i>167</i>&nbsp;				+boundarySetsStep2.size());
+<i>168</i>&nbsp;		} 
+<i>169</i>&nbsp;
+<b class="fc"><i>170</i>&nbsp;		Pair&lt;ArrayList&lt;CellSet&gt;, ArrayList&lt;CellSet&gt;&gt; openClosed = breakBoundariesIntoOpenAndClosed(boundarySetsStep2, workGrid);</b>
+<b class="fc"><i>171</i>&nbsp;		ArrayList&lt;CellSet&gt; open = openClosed.first;</b>
+<b class="fc"><i>172</i>&nbsp;		ArrayList&lt;CellSet&gt; closed = openClosed.second;</b>
+<i>173</i>&nbsp;
+<b class="fc"><i>174</i>&nbsp;		boolean removedAnyObsolete = removeObsoleteShapes(workGrid, closed);</b>
+<i>175</i>&nbsp;		
+<b class="fc"><i>176</i>&nbsp;		boolean allCornersRound = false;</b>
+<b class="fc"><i>177</i>&nbsp;		if(options.processingOptions.areAllCornersRound()) allCornersRound = true;</b>
+<i>178</i>&nbsp;		
+<i>179</i>&nbsp;		//make shapes from the boundary sets
+<i>180</i>&nbsp;		//make closed shapes
+<b class="fc"><i>181</i>&nbsp;		ArrayList closedShapes = new ArrayList();</b>
+<b class="fc"><i>182</i>&nbsp;		Iterator sets = closed.iterator();</b>
+<b class="fc"><i>183</i>&nbsp;		while(sets.hasNext()){</b>
+<b class="fc"><i>184</i>&nbsp;			CellSet set = (CellSet) sets.next();</b>
+<b class="fc"><i>185</i>&nbsp;			DiagramComponent shape = DiagramComponent.createClosedFromBoundaryCells(workGrid, set, cellWidth, cellHeight, allCornersRound); </b>
+<b class="fc"><i>186</i>&nbsp;			if(shape != null){</b>
+<b class="fc"><i>187</i>&nbsp;				if(shape instanceof DiagramShape){</b>
+<b class="fc"><i>188</i>&nbsp;					addToShapes((DiagramShape) shape);</b>
+<b class="fc"><i>189</i>&nbsp;					closedShapes.add(shape);</b>
+<b class="nc"><i>190</i>&nbsp;				} else if(shape instanceof CompositeDiagramShape)</b>
+<b class="nc"><i>191</i>&nbsp;					addToCompositeShapes((CompositeDiagramShape) shape);</b>
+<i>192</i>&nbsp;			}
+<b class="fc"><i>193</i>&nbsp;		}</b>
+<i>194</i>&nbsp;
+<b class="fc"><i>195</i>&nbsp;		if(options.processingOptions.performSeparationOfCommonEdges())</b>
+<b class="fc"><i>196</i>&nbsp;			separateCommonEdges(closedShapes);</b>
+<i>197</i>&nbsp;
+<i>198</i>&nbsp;		//make open shapes
+<b class="fc"><i>199</i>&nbsp;		sets = open.iterator();</b>
+<b class="fc"><i>200</i>&nbsp;		while(sets.hasNext()){</b>
+<b class="fc"><i>201</i>&nbsp;			CellSet set = (CellSet) sets.next();</b>
+<b class="fc"><i>202</i>&nbsp;			if(set.size() == 1){ //single cell &quot;shape&quot;</b>
+<b class="fc"><i>203</i>&nbsp;				TextGrid.Cell cell = (TextGrid.Cell) set.getFirst();</b>
+<b class="fc"><i>204</i>&nbsp;				if(!grid.cellContainsDashedLineChar(cell)) { </b>
+<b class="fc"><i>205</i>&nbsp;					DiagramShape shape = DiagramShape.createSmallLine(workGrid, cell, cellWidth, cellHeight); </b>
+<b class="fc"><i>206</i>&nbsp;					if(shape != null) {</b>
+<b class="fc"><i>207</i>&nbsp;						addToShapes(shape); </b>
+<b class="fc"><i>208</i>&nbsp;						shape.connectEndsToAnchors(workGrid, this);</b>
+<i>209</i>&nbsp;					}
+<i>210</i>&nbsp;				}
+<b class="fc"><i>211</i>&nbsp;			} else { //normal shape</b>
+<b class="fc"><i>212</i>&nbsp;				DiagramComponent shape =</b>
+<i>213</i>&nbsp;					CompositeDiagramShape
+<b class="fc"><i>214</i>&nbsp;						.createOpenFromBoundaryCells(</b>
+<i>215</i>&nbsp;								workGrid, set, cellWidth, cellHeight, allCornersRound);
+<i>216</i>&nbsp;
+<b class="fc"><i>217</i>&nbsp;				if(shape != null){</b>
+<b class="fc"><i>218</i>&nbsp;					if(shape instanceof CompositeDiagramShape){</b>
+<b class="fc"><i>219</i>&nbsp;						addToCompositeShapes((CompositeDiagramShape) shape);</b>
+<b class="fc"><i>220</i>&nbsp;						((CompositeDiagramShape) shape).connectEndsToAnchors(workGrid, this);</b>
+<b class="nc"><i>221</i>&nbsp;					} else if(shape instanceof DiagramShape) {</b>
+<b class="nc"><i>222</i>&nbsp;						addToShapes((DiagramShape) shape);</b>
+<b class="nc"><i>223</i>&nbsp;						((DiagramShape) shape).connectEndsToAnchors(workGrid, this);</b>
+<b class="nc"><i>224</i>&nbsp;						((DiagramShape) shape).moveEndsToCellEdges(grid, this);</b>
+<i>225</i>&nbsp;					}
+<i>226</i>&nbsp;				}
+<i>227</i>&nbsp;					
+<i>228</i>&nbsp;			}
+<b class="fc"><i>229</i>&nbsp;		}</b>
+<i>230</i>&nbsp;
+<b class="fc"><i>231</i>&nbsp;		assignColorCodes(grid);</b>
+<i>232</i>&nbsp;
+<b class="fc"><i>233</i>&nbsp;		assignMarkup(grid, options.processingOptions);</b>
+<i>234</i>&nbsp;		
+<b class="fc"><i>235</i>&nbsp;		makeArrowheads(workGrid);</b>
+<i>236</i>&nbsp;
+<b class="fc"><i>237</i>&nbsp;		makePointMarkers(grid);</b>
+<i>238</i>&nbsp;
+<b class="fc"><i>239</i>&nbsp;		removeDuplicateShapes();</b>
+<i>240</i>&nbsp;		
+<i>241</i>&nbsp;		if(DEBUG) System.out.println(&quot;Shape count: &quot;+shapes.size());
+<i>242</i>&nbsp;		if(DEBUG) System.out.println(&quot;Composite shape count: &quot;+compositeShapes.size());
+<i>243</i>&nbsp;
+<b class="fc"><i>244</i>&nbsp;		extractText(grid);</b>
+<i>245</i>&nbsp;
+<i>246</i>&nbsp;		if (DEBUG)
+<i>247</i>&nbsp;			System.out.println(&quot;Corrected color of text according to underlying color&quot;);
+<i>248</i>&nbsp;
+<b class="fc"><i>249</i>&nbsp;	}</b>
+<i>250</i>&nbsp;	
+<i>251</i>&nbsp;	/**
+<i>252</i>&nbsp;	 * Returns a list of all DiagramShapes in the Diagram, including
+<i>253</i>&nbsp;	 * the ones within CompositeDiagramShapes
+<i>254</i>&nbsp;	 * 
+<i>255</i>&nbsp;	 * @requires true
+<i>256</i>&nbsp;	 * @ensures \result is an ArrayList containing all elements of this.shapes and all elements of this.compositeShapes
+<i>257</i>&nbsp;	 */
+<i>258</i>&nbsp;	public /*@pure@*/ ArrayList&lt;DiagramShape&gt; getAllDiagramShapes(){
+<b class="fc"><i>259</i>&nbsp;		ArrayList shapes = new ArrayList();</b>
+<b class="fc"><i>260</i>&nbsp;		shapes.addAll(this.getShapes());</b>
+<i>261</i>&nbsp;		
+<b class="fc"><i>262</i>&nbsp;		Iterator shapesIt = this.getCompositeShapes().iterator();</b>
+<b class="fc"><i>263</i>&nbsp;		while(shapesIt.hasNext()){</b>
+<b class="fc"><i>264</i>&nbsp;			CompositeDiagramShape compShape = (CompositeDiagramShape) shapesIt.next();</b>
+<b class="fc"><i>265</i>&nbsp;			shapes.addAll(compShape.getShapes());</b>
+<b class="fc"><i>266</i>&nbsp;		}</b>
+<i>267</i>&nbsp;
+<b class="fc"><i>268</i>&nbsp;		for (Object e: this.getShapes()) {</b>
+<b class="fc"><i>269</i>&nbsp;			assert (shapes.contains(e));</b>
+<b class="fc"><i>270</i>&nbsp;		}</b>
+<b class="fc"><i>271</i>&nbsp;		for (Object e: this.getCompositeShapes()) {</b>
+<b class="fc"><i>272</i>&nbsp;			for (Object o: ((CompositeDiagramShape)e).getShapes()) {</b>
+<b class="fc"><i>273</i>&nbsp;				assert (shapes.contains(o));</b>
+<b class="fc"><i>274</i>&nbsp;			}</b>
+<b class="fc"><i>275</i>&nbsp;		}</b>
+<i>276</i>&nbsp;
+<b class="fc"><i>277</i>&nbsp;		return shapes;</b>
+<i>278</i>&nbsp;	}
+<i>279</i>&nbsp;	
+<i>280</i>&nbsp;	/**
+<i>281</i>&nbsp;	 * Removes the sets from &lt;code&gt;sets&lt;/code&gt;that are the sum of their parts
+<i>282</i>&nbsp;	 * when plotted as filled shapes.
+<i>283</i>&nbsp;	 *
+<i>284</i>&nbsp;	 * @requires all arguments are non-null. All CellSets in sets are within the x and y-bounds of grid
+<i>285</i>&nbsp;	 * @assignable sets
+<i>286</i>&nbsp;	 * @ensures A minimal number of CellSets are removed from sets s.t. no CellSet &#39;A&#39; in sets covers an area which is
+<i>287</i>&nbsp;	 * exactly the same as the  union of areas covered by any subset of CellSets in sets excluding A.
+<i>288</i>&nbsp;	 * @return true if it removed any shapes from sets.
+<i>289</i>&nbsp;	 * 
+<i>290</i>&nbsp;	 */
+<i>291</i>&nbsp;	private boolean removeObsoleteShapes(TextGrid grid, ArrayList&lt;CellSet&gt; sets){
+<b class="fc"><i>292</i>&nbsp;		assert (grid != null &amp;&amp; sets != null);</b>
+<b class="fc"><i>293</i>&nbsp;		for (CellSet s: sets) {</b>
+<b class="fc"><i>294</i>&nbsp;			assert (s.getMinX() &gt;= 0 &amp;&amp; s.getMaxX() &lt;= grid.getWidth() &amp;&amp;</b>
+<b class="fc"><i>295</i>&nbsp;						s.getMinY() &gt;= 0 &amp;&amp; s.getMaxY() &lt;= grid.getHeight());</b>
+<b class="fc"><i>296</i>&nbsp;		}</b>
+<b class="fc"><i>297</i>&nbsp;		int initSize = sets.size();</b>
+<i>298</i>&nbsp;
+<i>299</i>&nbsp;		if (DEBUG)
+<i>300</i>&nbsp;			System.out.println(&quot;******* Removing obsolete shapes *******&quot;);
+<i>301</i>&nbsp;		
+<b class="fc"><i>302</i>&nbsp;		boolean removedAny = false;</b>
+<i>303</i>&nbsp;		
+<b class="fc"><i>304</i>&nbsp;		ArrayList&lt;CellSet&gt; filledSets = new ArrayList&lt;CellSet&gt;();</b>
+<i>305</i>&nbsp;
+<i>306</i>&nbsp;		Iterator it;
+<i>307</i>&nbsp;
+<i>308</i>&nbsp;		if(VERBOSE_DEBUG) {
+<i>309</i>&nbsp;			System.out.println(&quot;******* Sets before *******&quot;);
+<i>310</i>&nbsp;			it = sets.iterator();
+<i>311</i>&nbsp;			while(it.hasNext()){
+<i>312</i>&nbsp;				CellSet set = (CellSet) it.next();
+<i>313</i>&nbsp;				set.printAsGrid();
+<i>314</i>&nbsp;			}
+<i>315</i>&nbsp;		}
+<i>316</i>&nbsp;
+<i>317</i>&nbsp;		//make filled versions of all the boundary sets
+<b class="fc"><i>318</i>&nbsp;		it = sets.iterator();</b>
+<b class="fc"><i>319</i>&nbsp;		while(it.hasNext()){</b>
+<b class="fc"><i>320</i>&nbsp;			CellSet set = (CellSet) it.next();</b>
+<b class="fc"><i>321</i>&nbsp;			set = set.getFilledEquivalent(grid);</b>
+<b class="fc"><i>322</i>&nbsp;			if(set == null){</b>
+<b class="nc"><i>323</i>&nbsp;				return false;</b>
+<b class="fc"><i>324</i>&nbsp;			} else filledSets.add(set);</b>
+<b class="fc"><i>325</i>&nbsp;		}</b>
+<i>326</i>&nbsp;		
+<b class="fc"><i>327</i>&nbsp;		ArrayList&lt;Integer&gt; toBeRemovedIndices = new ArrayList&lt;Integer&gt;();</b>
+<b class="fc"><i>328</i>&nbsp;		it = filledSets.iterator();</b>
+<b class="fc"><i>329</i>&nbsp;		while(it.hasNext()){</b>
+<b class="fc"><i>330</i>&nbsp;			CellSet set = (CellSet) it.next();</b>
+<i>331</i>&nbsp;			
+<i>332</i>&nbsp;			if(VERBOSE_DEBUG){
+<i>333</i>&nbsp;				System.out.println(&quot;*** Deciding if the following should be removed:&quot;);
+<i>334</i>&nbsp;				set.printAsGrid();
+<i>335</i>&nbsp;			}
+<i>336</i>&nbsp;			
+<i>337</i>&nbsp;			//find the other sets that have common cells with set
+<b class="fc"><i>338</i>&nbsp;			ArrayList&lt;CellSet&gt; common = new ArrayList&lt;CellSet&gt;();</b>
+<b class="fc"><i>339</i>&nbsp;			common.add(set);</b>
+<b class="fc"><i>340</i>&nbsp;			Iterator it2 = filledSets.iterator();</b>
+<b class="fc"><i>341</i>&nbsp;			while(it2.hasNext()){</b>
+<b class="fc"><i>342</i>&nbsp;				CellSet set2 = (CellSet) it2.next();</b>
+<b class="fc"><i>343</i>&nbsp;				if(set != set2 &amp;&amp; set.hasCommonCells(set2)){</b>
+<b class="fc"><i>344</i>&nbsp;					common.add(set2);</b>
+<i>345</i>&nbsp;				}
+<b class="fc"><i>346</i>&nbsp;			}</b>
+<i>347</i>&nbsp;			//it only makes sense for more than 2 sets
+<b class="fc"><i>348</i>&nbsp;			if(common.size() == 2) continue;</b>
+<i>349</i>&nbsp;			
+<i>350</i>&nbsp;			//find largest set
+<b class="fc"><i>351</i>&nbsp;			CellSet largest = set;</b>
+<b class="fc"><i>352</i>&nbsp;			it2 = common.iterator();</b>
+<b class="fc"><i>353</i>&nbsp;			while(it2.hasNext()){</b>
+<b class="fc"><i>354</i>&nbsp;				CellSet set2 = (CellSet) it2.next();</b>
+<b class="fc"><i>355</i>&nbsp;				if(set2.size() &gt; largest.size()){</b>
+<b class="fc"><i>356</i>&nbsp;					largest = set2;</b>
+<i>357</i>&nbsp;				}
+<b class="fc"><i>358</i>&nbsp;			}</b>
+<i>359</i>&nbsp;			
+<i>360</i>&nbsp;			if(VERBOSE_DEBUG){
+<i>361</i>&nbsp;				System.out.println(&quot;Largest:&quot;);
+<i>362</i>&nbsp;				largest.printAsGrid();
+<i>363</i>&nbsp;			}
+<i>364</i>&nbsp;
+<i>365</i>&nbsp;			//see if largest is sum of others
+<b class="fc"><i>366</i>&nbsp;			common.remove(largest);</b>
+<i>367</i>&nbsp;
+<i>368</i>&nbsp;			//make the sum set of the small sets on a grid
+<b class="fc"><i>369</i>&nbsp;			TextGrid gridOfSmalls = new TextGrid(largest.getMaxX() + 2, largest.getMaxY() + 2);</b>
+<b class="fc"><i>370</i>&nbsp;			CellSet sumOfSmall = new CellSet();</b>
+<b class="fc"><i>371</i>&nbsp;			it2 = common.iterator();</b>
+<b class="fc"><i>372</i>&nbsp;			while(it2.hasNext()){</b>
+<b class="fc"><i>373</i>&nbsp;				CellSet set2 = (CellSet) it2.next();</b>
+<i>374</i>&nbsp;				if(VERBOSE_DEBUG){
+<i>375</i>&nbsp;					System.out.println(&quot;One of smalls:&quot;);
+<i>376</i>&nbsp;					set2.printAsGrid();
+<i>377</i>&nbsp;				}
+<b class="fc"><i>378</i>&nbsp;				gridOfSmalls.fillCellsWith(set2, &#39;*&#39;);</b>
+<b class="fc"><i>379</i>&nbsp;			}</b>
+<i>380</i>&nbsp;			if(VERBOSE_DEBUG){
+<i>381</i>&nbsp;				System.out.println(&quot;Sum of smalls:&quot;);
+<i>382</i>&nbsp;				gridOfSmalls.printDebug();
+<i>383</i>&nbsp;			}
+<b class="fc"><i>384</i>&nbsp;			TextGrid gridLargest = new TextGrid(largest.getMaxX() + 2, largest.getMaxY() + 2);</b>
+<b class="fc"><i>385</i>&nbsp;			gridLargest.fillCellsWith(largest, &#39;*&#39;);</b>
+<i>386</i>&nbsp;
+<b class="fc"><i>387</i>&nbsp;			int index = filledSets.indexOf(largest);</b>
+<b class="fc"><i>388</i>&nbsp;			if(gridLargest.equals(gridOfSmalls)</b>
+<b class="fc"><i>389</i>&nbsp;					&amp;&amp; !toBeRemovedIndices.contains(new Integer(index))) {</b>
+<b class="fc"><i>390</i>&nbsp;				toBeRemovedIndices.add(new Integer(index));</b>
+<i>391</i>&nbsp;				if (DEBUG){
+<i>392</i>&nbsp;					System.out.println(&quot;Decided to remove set:&quot;);
+<i>393</i>&nbsp;					largest.printAsGrid();
+<i>394</i>&nbsp;				}
+<i>395</i>&nbsp;			} else if (DEBUG){
+<i>396</i>&nbsp;				System.out.println(&quot;This set WILL NOT be removed:&quot;);
+<i>397</i>&nbsp;				largest.printAsGrid();
+<i>398</i>&nbsp;			}
+<i>399</i>&nbsp;			//if(gridLargest.equals(gridOfSmalls)) toBeRemovedIndices.add(new Integer(index));
+<b class="fc"><i>400</i>&nbsp;		}</b>
+<i>401</i>&nbsp;		
+<b class="fc"><i>402</i>&nbsp;		ArrayList&lt;CellSet&gt; setsToBeRemoved = new ArrayList&lt;CellSet&gt;();</b>
+<b class="fc"><i>403</i>&nbsp;		it = toBeRemovedIndices.iterator();</b>
+<b class="fc"><i>404</i>&nbsp;		while(it.hasNext()){</b>
+<b class="fc"><i>405</i>&nbsp;			int i = ((Integer) it.next()).intValue();</b>
+<b class="fc"><i>406</i>&nbsp;			setsToBeRemoved.add(sets.get(i));</b>
+<b class="fc"><i>407</i>&nbsp;		}</b>
+<i>408</i>&nbsp;	
+<b class="fc"><i>409</i>&nbsp;		it = setsToBeRemoved.iterator();</b>
+<b class="fc"><i>410</i>&nbsp;		while(it.hasNext()){</b>
+<b class="fc"><i>411</i>&nbsp;			CellSet set = (CellSet) it.next();</b>
+<b class="fc"><i>412</i>&nbsp;			removedAny = true;</b>
+<b class="fc"><i>413</i>&nbsp;			sets.remove(set);</b>
+<b class="fc"><i>414</i>&nbsp;		}</b>
+<i>415</i>&nbsp;	
+<i>416</i>&nbsp;		if(VERBOSE_DEBUG) {
+<i>417</i>&nbsp;			System.out.println(&quot;******* Sets after *******&quot;);
+<i>418</i>&nbsp;			it = sets.iterator();
+<i>419</i>&nbsp;			while(it.hasNext()){
+<i>420</i>&nbsp;				CellSet set = (CellSet) it.next();
+<i>421</i>&nbsp;				set.printAsGrid();
+<i>422</i>&nbsp;			}
+<i>423</i>&nbsp;		}
+<i>424</i>&nbsp;
+<b class="fc"><i>425</i>&nbsp;		assert((removedAny &amp;&amp; sets.size() &lt; initSize) || (!removedAny &amp;&amp; sets.size() == initSize));</b>
+<i>426</i>&nbsp;
+<b class="fc"><i>427</i>&nbsp;		return removedAny;</b>
+<i>428</i>&nbsp;	}
+<i>429</i>&nbsp;	
+<i>430</i>&nbsp;	public /*@pure*/ float getMinimumOfCellDimension(){
+<b class="fc"><i>431</i>&nbsp;		return Math.min(getCellWidth(), getCellHeight());</b>
+<i>432</i>&nbsp;	}
+<i>433</i>&nbsp;
+<i>434</i>&nbsp;	/*
+<i>435</i>&nbsp;	 * Pulls apart (in pixel space) any edges of DiagramComponents in shapes that overlap.
+<i>436</i>&nbsp;	 * @requires shapes is not null.
+<i>437</i>&nbsp;	 * @ensures For each pair of edges in shapes which overlap (cover any of the exact same pixels), the endpoints of
+<i>438</i>&nbsp;	 * both edges are shifted by getMinimumOfCellDimension()/5, in a direction such that the orientation of each edge is
+<i>439</i>&nbsp;	 * unchanged and the area of each parent shape decreases rather than increases.
+<i>440</i>&nbsp;	 */
+<i>441</i>&nbsp;	private void separateCommonEdges(ArrayList shapes){
+<b class="fc"><i>442</i>&nbsp;		assert (shapes != null);</b>
+<i>443</i>&nbsp;
+<b class="fc"><i>444</i>&nbsp;		float offset = getMinimumOfCellDimension() / 5;</b>
+<i>445</i>&nbsp;
+<b class="fc"><i>446</i>&nbsp;		ArrayList&lt;ShapeEdge&gt; edges = new ArrayList&lt;ShapeEdge&gt;();</b>
+<i>447</i>&nbsp;
+<i>448</i>&nbsp;		//get all adges
+<b class="fc"><i>449</i>&nbsp;		Iterator it = shapes.iterator();</b>
+<b class="fc"><i>450</i>&nbsp;		while (it.hasNext()) {</b>
+<b class="fc"><i>451</i>&nbsp;			DiagramShape shape = (DiagramShape) it.next();</b>
+<b class="fc"><i>452</i>&nbsp;			edges.addAll(shape.getEdges());</b>
+<b class="fc"><i>453</i>&nbsp;		}</b>
+<i>454</i>&nbsp;		
+<i>455</i>&nbsp;		//group edges into pairs of touching edges
+<b class="fc"><i>456</i>&nbsp;		ArrayList&lt;Pair&lt;ShapeEdge, ShapeEdge&gt;&gt; listOfPairs = new ArrayList&lt;Pair&lt;ShapeEdge, ShapeEdge&gt;&gt;();</b>
+<b class="fc"><i>457</i>&nbsp;		it = edges.iterator();</b>
+<i>458</i>&nbsp;		
+<i>459</i>&nbsp;		//all-against-all touching test for the edges
+<b class="fc"><i>460</i>&nbsp;		int startIndex = 1; //skip some to avoid duplicate comparisons and self-to-self comparisons</b>
+<i>461</i>&nbsp;		
+<b class="fc"><i>462</i>&nbsp;		while(it.hasNext()){</b>
+<b class="fc"><i>463</i>&nbsp;			ShapeEdge edge1 = (ShapeEdge) it.next();</b>
+<i>464</i>&nbsp;			
+<b class="fc"><i>465</i>&nbsp;			for(int k = startIndex; k &lt; edges.size(); k++) {</b>
+<b class="fc"><i>466</i>&nbsp;				ShapeEdge edge2 =  edges.get(k);</b>
+<i>467</i>&nbsp;				
+<b class="fc"><i>468</i>&nbsp;				if(edge1.touchesWith(edge2)) {</b>
+<b class="fc"><i>469</i>&nbsp;					listOfPairs.add(new Pair&lt;ShapeEdge, ShapeEdge&gt;(edge1, edge2));</b>
+<i>470</i>&nbsp;				}
+<i>471</i>&nbsp;			}
+<b class="fc"><i>472</i>&nbsp;			startIndex++;</b>
+<b class="fc"><i>473</i>&nbsp;		}</b>
+<i>474</i>&nbsp;		
+<b class="fc"><i>475</i>&nbsp;		ArrayList&lt;ShapeEdge&gt; movedEdges = new ArrayList&lt;ShapeEdge&gt;();</b>
+<i>476</i>&nbsp;		
+<i>477</i>&nbsp;		//move equivalent edges inwards
+<b class="fc"><i>478</i>&nbsp;		it = listOfPairs.iterator();</b>
+<b class="fc"><i>479</i>&nbsp;		while(it.hasNext()){</b>
+<b class="fc"><i>480</i>&nbsp;			Pair&lt;ShapeEdge, ShapeEdge&gt; pair = (Pair&lt;ShapeEdge, ShapeEdge&gt;) it.next();</b>
+<b class="fc"><i>481</i>&nbsp;			if(!movedEdges.contains(pair.first)) {</b>
+<b class="fc"><i>482</i>&nbsp;				pair.first.moveInwardsBy(offset);</b>
+<b class="fc"><i>483</i>&nbsp;				movedEdges.add(pair.first);</b>
+<i>484</i>&nbsp;			}
+<b class="fc"><i>485</i>&nbsp;			if(!movedEdges.contains(pair.second)) {</b>
+<b class="fc"><i>486</i>&nbsp;				pair.second.moveInwardsBy(offset);</b>
+<b class="fc"><i>487</i>&nbsp;				movedEdges.add(pair.second);</b>
+<i>488</i>&nbsp;			}
+<b class="fc"><i>489</i>&nbsp;		}</b>
+<i>490</i>&nbsp;
+<b class="fc"><i>491</i>&nbsp;	}</b>
+<i>492</i>&nbsp;	
+<i>493</i>&nbsp;	/*
+<i>494</i>&nbsp;	 * @requires this.shapes is non-null
+<i>495</i>&nbsp;	 * @ensures Removes a minimal number of DiagramComponents from this.shapes s.t. there do NOT exist any two integers
+<i>496</i>&nbsp;	 * i and j where i != j but this.shapes[i].equals(this.shapes[j])
+<i>497</i>&nbsp;	 */
+<i>498</i>&nbsp;	//TODO: removes more than it should
+<i>499</i>&nbsp;	private void removeDuplicateShapes() {
+<b class="fc"><i>500</i>&nbsp;		assert (this.shapes != null);</b>
+<b class="fc"><i>501</i>&nbsp;		int initSize = this.shapes.size();</b>
+<i>502</i>&nbsp;
+<b class="fc"><i>503</i>&nbsp;		ArrayList originalShapes = new ArrayList();</b>
+<i>504</i>&nbsp;
+<b class="fc"><i>505</i>&nbsp;		Iterator shapesIt = getShapesIterator();</b>
+<b class="fc"><i>506</i>&nbsp;		while(shapesIt.hasNext()){</b>
+<b class="fc"><i>507</i>&nbsp;			DiagramShape shape = (DiagramShape) shapesIt.next();</b>
+<b class="fc"><i>508</i>&nbsp;			boolean isOriginal = true;</b>
+<b class="fc"><i>509</i>&nbsp;			Iterator originals = originalShapes.iterator();</b>
+<b class="fc"><i>510</i>&nbsp;			while(originals.hasNext()){</b>
+<b class="fc"><i>511</i>&nbsp;				DiagramShape originalShape = (DiagramShape) originals.next();</b>
+<b class="fc"><i>512</i>&nbsp;				if(shape.equals(originalShape)){</b>
+<b class="fc"><i>513</i>&nbsp;					isOriginal = false;</b>
+<i>514</i>&nbsp;				}
+<b class="fc"><i>515</i>&nbsp;			}</b>
+<b class="fc"><i>516</i>&nbsp;			if(isOriginal) originalShapes.add(shape);</b>
+<b class="fc"><i>517</i>&nbsp;		}</b>
+<i>518</i>&nbsp;
+<b class="fc"><i>519</i>&nbsp;		shapes.clear();</b>
+<b class="fc"><i>520</i>&nbsp;		shapes.addAll(originalShapes);</b>
+<i>521</i>&nbsp;
+<b class="fc"><i>522</i>&nbsp;		assert (shapes.size() &lt;= initSize);</b>
+<b class="fc"><i>523</i>&nbsp;		for (int i = 0; i &lt; shapes.size(); i++) {</b>
+<b class="fc"><i>524</i>&nbsp;			for (int j = 0; j &lt; i; j++) {</b>
+<b class="fc"><i>525</i>&nbsp;				assert (!shapes.get(i).equals(shapes.get(j)));</b>
+<i>526</i>&nbsp;			}
+<i>527</i>&nbsp;		}
+<b class="fc"><i>528</i>&nbsp;	}</b>
+<i>529</i>&nbsp;
+<i>530</i>&nbsp;	/*
+<i>531</i>&nbsp;	 * Decomposes the unclassifiedBoundaries into a set of Open and Closed boundaries which are easily rendered.
+<i>532</i>&nbsp;	 * @ assignable unclassifiedBoundaries
+<i>533</i>&nbsp;	 * @ requires grid does not contain text or point markers &#39;over&#39; what are intended to be contiguous lines.
+<i>534</i>&nbsp;	 * @ ensures let open = result[0] and closed = result[1]:
+<i>535</i>&nbsp;	 * @ Each CellSet in open is an open line &amp;&amp;
+<i>536</i>&nbsp;	 * @ Each CellSet in closed is a simple closed curve &amp;&amp;
+<i>537</i>&nbsp;	 * @ The union of all CellSets in open and closed covered the union of cells in \old(unclassifiedBoundaries).
+<i>538</i>&nbsp;	 */
+<i>539</i>&nbsp;	private Pair&lt;ArrayList&lt;CellSet&gt;, ArrayList&lt;CellSet&gt;&gt; breakBoundariesIntoOpenAndClosed(
+<i>540</i>&nbsp;			ArrayList&lt;CellSet&gt; unclassifiedBoundaries, TextGrid grid) {
+<i>541</i>&nbsp;
+<i>542</i>&nbsp;		//for assertion
+<b class="fc"><i>543</i>&nbsp;		CellSet oldUnion = new CellSet();</b>
+<b class="fc"><i>544</i>&nbsp;		for (CellSet c: unclassifiedBoundaries) {</b>
+<b class="fc"><i>545</i>&nbsp;			oldUnion.addSet(c);</b>
+<b class="fc"><i>546</i>&nbsp;		}</b>
+<i>547</i>&nbsp;
+<i>548</i>&nbsp;		//split boundaries to open, closed and mixed
+<i>549</i>&nbsp;		ArrayList open;
+<i>550</i>&nbsp;		ArrayList closed;
+<i>551</i>&nbsp;		ArrayList mixed;
+<i>552</i>&nbsp;		Iterator sets;
+<i>553</i>&nbsp;		do {
+<i>554</i>&nbsp;			if (DEBUG)
+<i>555</i>&nbsp;				System.out.println(&quot;******* Evaluating openess *******&quot;);
+<i>556</i>&nbsp;
+<i>557</i>&nbsp;			//Evaluate open-ness of each boundary.
+<b class="fc"><i>558</i>&nbsp;			open = new ArrayList();</b>
+<b class="fc"><i>559</i>&nbsp;			closed = new ArrayList();</b>
+<b class="fc"><i>560</i>&nbsp;			mixed = new ArrayList();</b>
+<i>561</i>&nbsp;
+<b class="fc"><i>562</i>&nbsp;			sets = unclassifiedBoundaries.iterator();</b>
+<b class="fc"><i>563</i>&nbsp;			while(sets.hasNext()){</b>
+<b class="fc"><i>564</i>&nbsp;				CellSet set = (CellSet) sets.next();</b>
+<b class="fc"><i>565</i>&nbsp;				int type = set.getType(grid);</b>
+<b class="fc"><i>566</i>&nbsp;				if(type == CellSet.TYPE_CLOSED) closed.add(set);</b>
+<b class="fc"><i>567</i>&nbsp;				else if(type == CellSet.TYPE_OPEN) open.add(set);</b>
+<b class="fc"><i>568</i>&nbsp;				else if(type == CellSet.TYPE_MIXED) mixed.add(set);</b>
+<i>569</i>&nbsp;				if(DEBUG){
+<i>570</i>&nbsp;					if(type == CellSet.TYPE_CLOSED) System.out.println(&quot;Closed boundaries:&quot;);
+<i>571</i>&nbsp;					else if(type == CellSet.TYPE_OPEN) System.out.println(&quot;Open boundaries:&quot;);
+<i>572</i>&nbsp;					else if(type == CellSet.TYPE_MIXED) System.out.println(&quot;Mixed boundaries:&quot;);
+<i>573</i>&nbsp;					set.printAsGrid();
+<i>574</i>&nbsp;				}
+<b class="fc"><i>575</i>&nbsp;			}</b>
+<i>576</i>&nbsp;
+<i>577</i>&nbsp;			/*
+<i>578</i>&nbsp;			If there are mixed shapes, decompose them into open and closed shapes. This could, in edge cases, take
+<i>579</i>&nbsp;			multiple passes, although not usually. ~Chris M.
+<i>580</i>&nbsp;			 */
+<i>581</i>&nbsp;
+<b class="fc"><i>582</i>&nbsp;			if(mixed.size() &gt; 0 &amp;&amp; closed.size() &gt; 0) {</b>
+<i>583</i>&nbsp;				// some mixed shapes must be broken down by
+<i>584</i>&nbsp;				// subtracting the closed shapes we have previously ID&#39;d from them
+<i>585</i>&nbsp;				if (DEBUG)
+<i>586</i>&nbsp;					System.out.println(&quot;******* Eliminating mixed shapes (subtracting known closed curves) *******&quot;);
+<i>587</i>&nbsp;
+<i>588</i>&nbsp;				//subtract from each of the mixed sets all the closed sets
+<b class="fc"><i>589</i>&nbsp;				sets = mixed.iterator();</b>
+<b class="fc"><i>590</i>&nbsp;				while(sets.hasNext()){</b>
+<b class="fc"><i>591</i>&nbsp;					CellSet set = (CellSet) sets.next();</b>
+<b class="fc"><i>592</i>&nbsp;					Iterator closedSets = closed.iterator();</b>
+<b class="fc"><i>593</i>&nbsp;					while(closedSets.hasNext()){</b>
+<b class="fc"><i>594</i>&nbsp;						CellSet closedSet = (CellSet) closedSets.next();</b>
+<b class="fc"><i>595</i>&nbsp;						if (closedSet.isSubsetOf(set)) {</b>
+<b class="fc"><i>596</i>&nbsp;							set.subtractSet(closedSet);</b>
+<i>597</i>&nbsp;						}
+<b class="fc"><i>598</i>&nbsp;					}</b>
+<i>599</i>&nbsp;					// this is necessary because some mixed sets produce
+<i>600</i>&nbsp;					// several distinct open sets after you subtract the
+<i>601</i>&nbsp;					// closed sets from them
+<b class="fc"><i>602</i>&nbsp;					if(set.getType(grid) == CellSet.TYPE_OPEN) {</b>
+<b class="fc"><i>603</i>&nbsp;						unclassifiedBoundaries.remove(set);</b>
+<b class="fc"><i>604</i>&nbsp;						unclassifiedBoundaries.addAll(set.breakIntoDistinctBoundaries(grid));</b>
+<i>605</i>&nbsp;					}
+<b class="fc"><i>606</i>&nbsp;				}</b>
+<i>607</i>&nbsp;			}
+<b class="fc"><i>608</i>&nbsp;			if(mixed.size() &gt; 0) {</b>
+<i>609</i>&nbsp;				// Now we will have to
+<i>610</i>&nbsp;				// handle mixed shape on its own
+<i>611</i>&nbsp;				// an example of this case is the following:
+<i>612</i>&nbsp;				// +-----+
+<i>613</i>&nbsp;				// |  A  |C                 B
+<i>614</i>&nbsp;				// +  ---+-------------------
+<i>615</i>&nbsp;				// |     |
+<i>616</i>&nbsp;				// +-----+
+<i>617</i>&nbsp;				// This algorithm works by tracing in from dead-ends and pulling out open shapes.
+<i>618</i>&nbsp;
+<i>619</i>&nbsp;				if (DEBUG)
+<i>620</i>&nbsp;					System.out.println(&quot;******* Eliminating mixed shapes (advanced tracing algorithm for very mixed shapes) *******&quot;);
+<i>621</i>&nbsp;
+<b class="fc"><i>622</i>&nbsp;				sets = mixed.iterator();</b>
+<b class="fc"><i>623</i>&nbsp;				while(sets.hasNext()){</b>
+<b class="fc"><i>624</i>&nbsp;					CellSet set = (CellSet) sets.next();</b>
+<b class="fc"><i>625</i>&nbsp;					unclassifiedBoundaries.remove(set);</b>
+<b class="fc"><i>626</i>&nbsp;					unclassifiedBoundaries.addAll(set.breakTrulyMixedBoundaries(grid));</b>
+<b class="fc"><i>627</i>&nbsp;				}</b>
+<i>628</i>&nbsp;
+<i>629</i>&nbsp;			} else {
+<i>630</i>&nbsp;				if (DEBUG)
+<i>631</i>&nbsp;					System.out.println(&quot;No mixed shapes found. Skipped mixed shape elimination step&quot;);
+<i>632</i>&nbsp;			}
+<i>633</i>&nbsp;
+<b class="fc"><i>634</i>&nbsp;		} while (mixed.size() &gt; 0);</b>
+<i>635</i>&nbsp;
+<i>636</i>&nbsp;		//long assertions
+<b class="fc"><i>637</i>&nbsp;		for (CellSet c: (ArrayList&lt;CellSet&gt;)open) {</b>
+<b class="fc"><i>638</i>&nbsp;			assert (c.getType(grid) == CellSet.TYPE_OPEN);</b>
+<b class="fc"><i>639</i>&nbsp;		}</b>
+<b class="fc"><i>640</i>&nbsp;		for (CellSet c: (ArrayList&lt;CellSet&gt;)closed) {</b>
+<b class="fc"><i>641</i>&nbsp;			assert (c.getType(grid) == CellSet.TYPE_CLOSED);</b>
+<b class="fc"><i>642</i>&nbsp;		}</b>
+<b class="fc"><i>643</i>&nbsp;		CellSet newUnion = new CellSet();</b>
+<b class="fc"><i>644</i>&nbsp;		for (CellSet c: (ArrayList&lt;CellSet&gt;)open) {</b>
+<b class="fc"><i>645</i>&nbsp;			newUnion.addSet(c);</b>
+<b class="fc"><i>646</i>&nbsp;		}</b>
+<b class="fc"><i>647</i>&nbsp;		for (CellSet c: (ArrayList&lt;CellSet&gt;)closed) {</b>
+<b class="fc"><i>648</i>&nbsp;			newUnion.addSet(c);</b>
+<b class="fc"><i>649</i>&nbsp;		}</b>
+<b class="fc"><i>650</i>&nbsp;		assert(newUnion.equals(oldUnion));</b>
+<i>651</i>&nbsp;
+<b class="fc"><i>652</i>&nbsp;		return new Pair&lt;ArrayList&lt;CellSet&gt;, ArrayList&lt;CellSet&gt;&gt;(open, closed);</b>
+<i>653</i>&nbsp;	}
+<i>654</i>&nbsp;
+<i>655</i>&nbsp;	/*
+<i>656</i>&nbsp;	 * Takes a list of connected components and further breaks them apart into &#39;boundaries&#39; by finding sets of cells
+<i>657</i>&nbsp;	 * That form interior or exterior boundaries to regions of blank space. Uses an AbstractionGrid for this, so that it
+<i>658</i>&nbsp;	 * can process the &#39;empty space&#39; between directly-adjacent characters.
+<i>659</i>&nbsp;	 * @ requires grid does not contain text or point markers &#39;over&#39; what are intended to be contiguous lines. &amp;&amp;
+<i>660</i>&nbsp;	 * 		topologically, each CellSet in connectedComponents contains no 1-dimensional holes (i.e. each are contiguous)
+<i>661</i>&nbsp;	 * @ ensures the union of all CellSets in \result matches the union off all CellSets in connectedComponents &amp;&amp;
+<i>662</i>&nbsp;	 * @ 	topologically, each CellSet in \result contains 0 or 1 2-dimensional holes.
+<i>663</i>&nbsp;	 */
+<i>664</i>&nbsp;	private ArrayList&lt;CellSet&gt; findInteriorExteriorBoundaries(ArrayList&lt;CellSet&gt; connectedComponents, TextGrid grid) {
+<i>665</i>&nbsp;
+<i>666</i>&nbsp;		//Find all the boundaries by using the special version of the filling method
+<i>667</i>&nbsp;		//(fills in a different buffer than the buffer it reads from)
+<b class="fc"><i>668</i>&nbsp;		ArrayList boundarySetsStep2 = new ArrayList();</b>
+<b class="fc"><i>669</i>&nbsp;		Iterator boundarySetIt = connectedComponents.iterator();</b>
+<b class="fc"><i>670</i>&nbsp;		while (boundarySetIt.hasNext()) {</b>
+<b class="fc"><i>671</i>&nbsp;			CellSet set = (CellSet) boundarySetIt.next();</b>
+<i>672</i>&nbsp;
+<b class="fc"><i>673</i>&nbsp;			int gridHeight = grid.getHeight();</b>
+<b class="fc"><i>674</i>&nbsp;			int gridWidth = grid.getWidth();</b>
+<i>675</i>&nbsp;
+<i>676</i>&nbsp;			//the fill buffer keeps track of which cells have been
+<i>677</i>&nbsp;			//filled already
+<b class="fc"><i>678</i>&nbsp;			TextGrid fillBuffer = new TextGrid(gridWidth * 3, gridHeight * 3);</b>
+<i>679</i>&nbsp;
+<b class="fc"><i>680</i>&nbsp;			for (int yi = 0; yi &lt; gridHeight * 3; yi++) {</b>
+<b class="fc"><i>681</i>&nbsp;				for (int xi = 0; xi &lt; gridWidth * 3; xi++) {</b>
+<b class="fc"><i>682</i>&nbsp;					if (fillBuffer.isBlank(xi, yi)) {</b>
+<i>683</i>&nbsp;
+<b class="fc"><i>684</i>&nbsp;						TextGrid copyGrid = new AbstractionGrid(grid, set).getCopyOfInternalBuffer();</b>
+<i>685</i>&nbsp;
+<i>686</i>&nbsp;						if (VERBOSE_DEBUG) {
+<i>687</i>&nbsp;							System.out.println(&quot;Found empty cell &quot; + xi + &quot;, &quot; + yi);
+<i>688</i>&nbsp;							copyGrid.printDebug();
+<i>689</i>&nbsp;						}
+<i>690</i>&nbsp;
+<b class="fc"><i>691</i>&nbsp;						CellSet boundaries =</b>
+<i>692</i>&nbsp;								copyGrid
+<b class="fc"><i>693</i>&nbsp;										.findBoundariesExpandingFrom(copyGrid.new Cell(xi, yi));</b>
+<b class="fc"><i>694</i>&nbsp;						if (boundaries.size() == 0) {</b>
+<i>695</i>&nbsp;							if (DEBUG) {
+<i>696</i>&nbsp;								System.out.println(&quot;findBoundariesExpandingFrom found empty boundary list!&quot;);
+<i>697</i>&nbsp;							}
+<b class="fc"><i>698</i>&nbsp;							continue; //i&#39;m not sure why these occur</b>
+<i>699</i>&nbsp;						}
+<b class="fc"><i>700</i>&nbsp;						boundarySetsStep2.add(boundaries.makeScaledOneThirdEquivalent());</b>
+<i>701</i>&nbsp;
+<b class="fc"><i>702</i>&nbsp;						copyGrid = new AbstractionGrid(grid, set).getCopyOfInternalBuffer();</b>
+<b class="fc"><i>703</i>&nbsp;						CellSet filled =</b>
+<i>704</i>&nbsp;								copyGrid
+<b class="fc"><i>705</i>&nbsp;										.fillContinuousArea(copyGrid.new Cell(xi, yi), &#39;*&#39;);</b>
+<b class="fc"><i>706</i>&nbsp;						fillBuffer.fillCellsWith(filled, &#39;*&#39;);</b>
+<b class="fc"><i>707</i>&nbsp;						fillBuffer.fillCellsWith(boundaries, &#39;-&#39;);</b>
+<i>708</i>&nbsp;
+<i>709</i>&nbsp;						if (DEBUG) {
+<i>710</i>&nbsp;							//System.out.println(&quot;Fill buffer:&quot;);
+<i>711</i>&nbsp;							//fillBuffer.printDebug();
+<i>712</i>&nbsp;							boundaries.makeScaledOneThirdEquivalent().printAsGrid();
+<i>713</i>&nbsp;							System.out.println(&quot;-----------------------------------&quot;);
+<i>714</i>&nbsp;						}
+<i>715</i>&nbsp;
+<i>716</i>&nbsp;					}
+<i>717</i>&nbsp;				}
+<i>718</i>&nbsp;			}
+<b class="fc"><i>719</i>&nbsp;		}</b>
+<b class="fc"><i>720</i>&nbsp;		return boundarySetsStep2;</b>
+<i>721</i>&nbsp;	}
+<i>722</i>&nbsp;
+<i>723</i>&nbsp;	/*
+<i>724</i>&nbsp;	 * Find color codes in grid and assign them to our shapes
+<i>725</i>&nbsp;	 * @ requires this.shapes is not null
+<i>726</i>&nbsp;	 * @ ensures \foreach shape in shapes, shape.fillColor is set to a color code inside the shape as represented by
+<i>727</i>&nbsp;	 * @ 	grid, if any such color codes exist.
+<i>728</i>&nbsp;	 */
+<i>729</i>&nbsp;	private void assignColorCodes(TextGrid grid) {
+<b class="fc"><i>730</i>&nbsp;		assert (this.shapes != null);</b>
+<i>731</i>&nbsp;
+<i>732</i>&nbsp;		//TODO: text on line should not change its color
+<i>733</i>&nbsp;		//TODO: each color tag should be assigned to the smallest containing shape (like shape tags)
+<i>734</i>&nbsp;
+<b class="fc"><i>735</i>&nbsp;		Iterator cellColorPairs = grid.findColorCodes().iterator();</b>
+<b class="fc"><i>736</i>&nbsp;		while(cellColorPairs.hasNext()){</b>
+<b class="fc"><i>737</i>&nbsp;			TextGrid.CellColorPair pair =</b>
+<b class="fc"><i>738</i>&nbsp;					(TextGrid.CellColorPair) cellColorPairs.next();</b>
+<b class="fc"><i>739</i>&nbsp;			ShapePoint point =</b>
+<b class="fc"><i>740</i>&nbsp;					new ShapePoint(getCellMidX(pair.cell), getCellMidY(pair.cell));</b>
+<b class="fc"><i>741</i>&nbsp;			Iterator shapes = getShapes().iterator();</b>
+<b class="fc"><i>742</i>&nbsp;			while(shapes.hasNext()){</b>
+<b class="fc"><i>743</i>&nbsp;				DiagramShape shape = (DiagramShape) shapes.next();</b>
+<b class="fc"><i>744</i>&nbsp;				if(shape.contains(point)) shape.setFillColor(pair.color);</b>
+<b class="fc"><i>745</i>&nbsp;			}</b>
+<b class="fc"><i>746</i>&nbsp;		}</b>
+<b class="fc"><i>747</i>&nbsp;	}</b>
+<i>748</i>&nbsp;
+<i>749</i>&nbsp;	/*
+<i>750</i>&nbsp;	 * Applies markup tags from grid to shapes in this.shapes containing them.
+<i>751</i>&nbsp;	 * @ requires: Arguments are non-null &amp;&amp; this.shapes is non-null
+<i>752</i>&nbsp;	 * @ ensures: \foreach shape in shapes, if any markup tag in grid falls within shape&#39;s bounds, shape&#39;s type and
+<i>753</i>&nbsp;	 * 		definition are set according to one such markup tag.
+<i>754</i>&nbsp;	 */
+<i>755</i>&nbsp;	private void assignMarkup(TextGrid grid, ProcessingOptions processingOptions) {
+<b class="fc"><i>756</i>&nbsp;		assert (grid != null &amp;&amp; processingOptions != null &amp;&amp; this.shapes != null);</b>
+<i>757</i>&nbsp;
+<i>758</i>&nbsp;		//assign markup to shapes
+<b class="fc"><i>759</i>&nbsp;		Iterator cellTagPairs = grid.findMarkupTags().iterator();</b>
+<b class="fc"><i>760</i>&nbsp;		while(cellTagPairs.hasNext()){</b>
+<b class="fc"><i>761</i>&nbsp;			TextGrid.CellTagPair pair =</b>
+<b class="fc"><i>762</i>&nbsp;					(TextGrid.CellTagPair) cellTagPairs.next();</b>
+<b class="fc"><i>763</i>&nbsp;			ShapePoint point =</b>
+<b class="fc"><i>764</i>&nbsp;					new ShapePoint(getCellMidX(pair.cell), getCellMidY(pair.cell));</b>
+<i>765</i>&nbsp;
+<i>766</i>&nbsp;			//find the smallest shape that contains the tag
+<b class="fc"><i>767</i>&nbsp;			DiagramShape containingShape = null;</b>
+<b class="fc"><i>768</i>&nbsp;			Iterator shapes = getShapes().iterator();</b>
+<b class="fc"><i>769</i>&nbsp;			while(shapes.hasNext()) {</b>
+<b class="fc"><i>770</i>&nbsp;				DiagramShape shape = (DiagramShape) shapes.next();</b>
+<b class="fc"><i>771</i>&nbsp;				if(shape.contains(point)){</b>
+<b class="fc"><i>772</i>&nbsp;					if(containingShape == null){</b>
+<b class="fc"><i>773</i>&nbsp;						containingShape = shape;</b>
+<i>774</i>&nbsp;					} else {
+<b class="nc"><i>775</i>&nbsp;						if(shape.isSmallerThan(containingShape)){</b>
+<b class="nc"><i>776</i>&nbsp;							containingShape = shape;</b>
+<i>777</i>&nbsp;						}
+<i>778</i>&nbsp;					}
+<i>779</i>&nbsp;				}
+<b class="fc"><i>780</i>&nbsp;			}</b>
+<i>781</i>&nbsp;
+<i>782</i>&nbsp;			//this tag is not within a shape, skip
+<b class="fc"><i>783</i>&nbsp;			if(containingShape == null) continue;</b>
+<i>784</i>&nbsp;
+<i>785</i>&nbsp;			//TODO: the code below could be a lot more concise
+<b class="fc"><i>786</i>&nbsp;			if(pair.tag.equals(&quot;d&quot;)){</b>
+<b class="fc"><i>787</i>&nbsp;				CustomShapeDefinition def =</b>
+<b class="fc"><i>788</i>&nbsp;						processingOptions.getFromCustomShapes(&quot;d&quot;);</b>
+<b class="fc"><i>789</i>&nbsp;				if(def == null)</b>
+<b class="fc"><i>790</i>&nbsp;					containingShape.setType(DiagramShape.TYPE_DOCUMENT);</b>
+<i>791</i>&nbsp;				else {
+<b class="nc"><i>792</i>&nbsp;					containingShape.setType(DiagramShape.TYPE_CUSTOM);</b>
+<b class="nc"><i>793</i>&nbsp;					containingShape.setDefinition(def);</b>
+<i>794</i>&nbsp;				}
+<b class="fc"><i>795</i>&nbsp;			} else if(pair.tag.equals(&quot;s&quot;)){</b>
+<b class="fc"><i>796</i>&nbsp;				CustomShapeDefinition def =</b>
+<b class="fc"><i>797</i>&nbsp;						processingOptions.getFromCustomShapes(&quot;s&quot;);</b>
+<b class="fc"><i>798</i>&nbsp;				if(def == null)</b>
+<b class="fc"><i>799</i>&nbsp;					containingShape.setType(DiagramShape.TYPE_STORAGE);</b>
+<i>800</i>&nbsp;				else {
+<b class="nc"><i>801</i>&nbsp;					containingShape.setType(DiagramShape.TYPE_CUSTOM);</b>
+<b class="nc"><i>802</i>&nbsp;					containingShape.setDefinition(def);</b>
+<i>803</i>&nbsp;				}
+<b class="fc"><i>804</i>&nbsp;			} else if(pair.tag.equals(&quot;io&quot;)){</b>
+<b class="fc"><i>805</i>&nbsp;				CustomShapeDefinition def =</b>
+<b class="fc"><i>806</i>&nbsp;						processingOptions.getFromCustomShapes(&quot;io&quot;);</b>
+<b class="fc"><i>807</i>&nbsp;				if(def == null)</b>
+<b class="fc"><i>808</i>&nbsp;					containingShape.setType(DiagramShape.TYPE_IO);</b>
+<i>809</i>&nbsp;				else {
+<b class="nc"><i>810</i>&nbsp;					containingShape.setType(DiagramShape.TYPE_CUSTOM);</b>
+<b class="nc"><i>811</i>&nbsp;					containingShape.setDefinition(def);</b>
+<i>812</i>&nbsp;				}
+<b class="fc"><i>813</i>&nbsp;			} else if(pair.tag.equals(&quot;c&quot;)){</b>
+<b class="nc"><i>814</i>&nbsp;				CustomShapeDefinition def =</b>
+<b class="nc"><i>815</i>&nbsp;						processingOptions.getFromCustomShapes(&quot;c&quot;);</b>
+<b class="nc"><i>816</i>&nbsp;				if(def == null)</b>
+<b class="nc"><i>817</i>&nbsp;					containingShape.setType(DiagramShape.TYPE_DECISION);</b>
+<i>818</i>&nbsp;				else {
+<b class="nc"><i>819</i>&nbsp;					containingShape.setType(DiagramShape.TYPE_CUSTOM);</b>
+<b class="nc"><i>820</i>&nbsp;					containingShape.setDefinition(def);</b>
+<i>821</i>&nbsp;				}
+<b class="nc"><i>822</i>&nbsp;			} else if(pair.tag.equals(&quot;mo&quot;)){</b>
+<b class="nc"><i>823</i>&nbsp;				CustomShapeDefinition def =</b>
+<b class="nc"><i>824</i>&nbsp;						processingOptions.getFromCustomShapes(&quot;mo&quot;);</b>
+<b class="nc"><i>825</i>&nbsp;				if(def == null)</b>
+<b class="nc"><i>826</i>&nbsp;					containingShape.setType(DiagramShape.TYPE_MANUAL_OPERATION);</b>
+<i>827</i>&nbsp;				else {
+<b class="nc"><i>828</i>&nbsp;					containingShape.setType(DiagramShape.TYPE_CUSTOM);</b>
+<b class="nc"><i>829</i>&nbsp;					containingShape.setDefinition(def);</b>
+<i>830</i>&nbsp;				}
+<b class="nc"><i>831</i>&nbsp;			} else if(pair.tag.equals(&quot;tr&quot;)){</b>
+<b class="nc"><i>832</i>&nbsp;				CustomShapeDefinition def =</b>
+<b class="nc"><i>833</i>&nbsp;						processingOptions.getFromCustomShapes(&quot;tr&quot;);</b>
+<b class="nc"><i>834</i>&nbsp;				if(def == null)</b>
+<b class="nc"><i>835</i>&nbsp;					containingShape.setType(DiagramShape.TYPE_TRAPEZOID);</b>
+<i>836</i>&nbsp;				else {
+<b class="nc"><i>837</i>&nbsp;					containingShape.setType(DiagramShape.TYPE_CUSTOM);</b>
+<b class="nc"><i>838</i>&nbsp;					containingShape.setDefinition(def);</b>
+<i>839</i>&nbsp;				}
+<b class="nc"><i>840</i>&nbsp;			} else if(pair.tag.equals(&quot;o&quot;)){</b>
+<b class="nc"><i>841</i>&nbsp;				CustomShapeDefinition def =</b>
+<b class="nc"><i>842</i>&nbsp;						processingOptions.getFromCustomShapes(&quot;o&quot;);</b>
+<b class="nc"><i>843</i>&nbsp;				if(def == null)</b>
+<b class="nc"><i>844</i>&nbsp;					containingShape.setType(DiagramShape.TYPE_ELLIPSE);</b>
+<i>845</i>&nbsp;				else {
+<b class="nc"><i>846</i>&nbsp;					containingShape.setType(DiagramShape.TYPE_CUSTOM);</b>
+<b class="nc"><i>847</i>&nbsp;					containingShape.setDefinition(def);</b>
+<i>848</i>&nbsp;				}
+<b class="nc"><i>849</i>&nbsp;			} else {</b>
+<b class="nc"><i>850</i>&nbsp;				CustomShapeDefinition def =</b>
+<b class="nc"><i>851</i>&nbsp;						processingOptions.getFromCustomShapes(pair.tag);</b>
+<b class="nc"><i>852</i>&nbsp;				containingShape.setType(DiagramShape.TYPE_CUSTOM);</b>
+<b class="nc"><i>853</i>&nbsp;				containingShape.setDefinition(def);</b>
+<i>854</i>&nbsp;			}
+<b class="fc"><i>855</i>&nbsp;		}</b>
+<b class="fc"><i>856</i>&nbsp;	}</b>
+<i>857</i>&nbsp;
+<i>858</i>&nbsp;	/*
+<i>859</i>&nbsp;	 * Pulls all free text out of grid, converts into DiagramTexts, and adds to textObjects
+<i>860</i>&nbsp;	 * @ assignable this.textObjects
+<i>861</i>&nbsp;	 * @ requires this.textObjects is non null &amp;&amp; this.shapes is non-null &amp;&amp; grid is non-null
+<i>862</i>&nbsp;	 * @ ensures all &#39;free text&#39; in grid (text not part of another DITAA entity) is represented by a DiagramText in
+<i>863</i>&nbsp;	 * 		this.textObjects &amp;&amp;
+<i>864</i>&nbsp;	 * @ 	any DiagramText overlapping any shapes in this.shapes is set to a color contrasting with one such shape. Any
+<i>865</i>&nbsp;	 * @	DiagramText overlapping no colored shapes is colored black.
+<i>866</i>&nbsp;	 * @ 	any DiagramText overlapping any shapes of type TYPE_CUSTOM in this.shapes is outlined.
+<i>867</i>&nbsp;	 */
+<i>868</i>&nbsp;	private void extractText(TextGrid grid) {
+<b class="fc"><i>869</i>&nbsp;		assert (this.textObjects != null &amp;&amp; this.shapes != null &amp;&amp; grid != null);</b>
+<i>870</i>&nbsp;
+<i>871</i>&nbsp;		//copy so we don&#39;t modify original
+<b class="fc"><i>872</i>&nbsp;		TextGrid workGrid = new TextGrid(grid);</b>
+<b class="fc"><i>873</i>&nbsp;		workGrid.removeNonText();</b>
+<i>874</i>&nbsp;
+<i>875</i>&nbsp;		// ****** handle text *******
+<i>876</i>&nbsp;		//break up text into groups
+<b class="fc"><i>877</i>&nbsp;		TextGrid textGroupGrid = new TextGrid(workGrid);</b>
+<b class="fc"><i>878</i>&nbsp;		CellSet gaps = textGroupGrid.getAllBlanksBetweenCharacters();</b>
+<i>879</i>&nbsp;		//kludge
+<b class="fc"><i>880</i>&nbsp;		textGroupGrid.fillCellsWith(gaps, &#39;|&#39;);</b>
+<b class="fc"><i>881</i>&nbsp;		CellSet nonBlank = textGroupGrid.getAllNonBlank();</b>
+<b class="fc"><i>882</i>&nbsp;		ArrayList textGroups = nonBlank.breakIntoDistinctBoundaries();</b>
+<i>883</i>&nbsp;		if(DEBUG) System.out.println(textGroups.size()+&quot; text groups found&quot;);
+<i>884</i>&nbsp;
+<b class="fc"><i>885</i>&nbsp;		Font font = FontMeasurer.instance().getFontFor(cellHeight);</b>
+<i>886</i>&nbsp;
+<b class="fc"><i>887</i>&nbsp;		Iterator textGroupIt = textGroups.iterator();</b>
+<b class="fc"><i>888</i>&nbsp;		while(textGroupIt.hasNext()){</b>
+<b class="fc"><i>889</i>&nbsp;			CellSet textGroupCellSet = (CellSet) textGroupIt.next();</b>
+<i>890</i>&nbsp;
+<b class="fc"><i>891</i>&nbsp;			TextGrid isolationGrid = new TextGrid(pxWidth, pxHeight);</b>
+<b class="fc"><i>892</i>&nbsp;			workGrid.copyCellsTo(textGroupCellSet, isolationGrid);</b>
+<i>893</i>&nbsp;
+<b class="fc"><i>894</i>&nbsp;			ArrayList strings = isolationGrid.findStrings();</b>
+<b class="fc"><i>895</i>&nbsp;			Iterator it = strings.iterator();</b>
+<b class="fc"><i>896</i>&nbsp;			while(it.hasNext()){</b>
+<b class="fc"><i>897</i>&nbsp;				TextGrid.CellStringPair pair = (TextGrid.CellStringPair) it.next();</b>
+<b class="fc"><i>898</i>&nbsp;				TextGrid.Cell cell = pair.cell;</b>
+<b class="fc"><i>899</i>&nbsp;				String string = pair.string;</b>
+<i>900</i>&nbsp;				if (DEBUG)
+<i>901</i>&nbsp;					System.out.println(&quot;Found string &quot;+string);
+<b class="fc"><i>902</i>&nbsp;				TextGrid.Cell lastCell = isolationGrid.new Cell(cell.x + string.length() - 1, cell.y);</b>
+<i>903</i>&nbsp;
+<b class="fc"><i>904</i>&nbsp;				int minX = getCellMinX(cell);</b>
+<b class="fc"><i>905</i>&nbsp;				int y = getCellMaxY(cell);</b>
+<b class="fc"><i>906</i>&nbsp;				int maxX = getCellMaxX(lastCell);</b>
+<i>907</i>&nbsp;
+<i>908</i>&nbsp;				DiagramText textObject;
+<b class="fc"><i>909</i>&nbsp;				if(FontMeasurer.instance().getWidthFor(string, font) &gt; maxX - minX){ //does not fit horizontally</b>
+<b class="fc"><i>910</i>&nbsp;					Font lessWideFont = FontMeasurer.instance().getFontFor(maxX - minX, string);</b>
+<b class="fc"><i>911</i>&nbsp;					textObject = new DiagramText(minX, y, string, lessWideFont);</b>
+<b class="fc"><i>912</i>&nbsp;				} else textObject = new DiagramText(minX, y, string, font);</b>
+<i>913</i>&nbsp;
+<b class="fc"><i>914</i>&nbsp;				textObject.centerVerticallyBetween(getCellMinY(cell), getCellMaxY(cell));</b>
+<i>915</i>&nbsp;
+<i>916</i>&nbsp;				//TODO: if the strings start with bullets they should be aligned to the left
+<i>917</i>&nbsp;
+<i>918</i>&nbsp;				//position text correctly
+<b class="fc"><i>919</i>&nbsp;				int otherStart = isolationGrid.otherStringsStartInTheSameColumn(cell);</b>
+<b class="fc"><i>920</i>&nbsp;				int otherEnd = isolationGrid.otherStringsEndInTheSameColumn(lastCell);</b>
+<b class="fc"><i>921</i>&nbsp;				if(0 == otherStart &amp;&amp; 0 == otherEnd) {</b>
+<b class="fc"><i>922</i>&nbsp;					textObject.centerHorizontallyBetween(minX, maxX);</b>
+<b class="fc"><i>923</i>&nbsp;				} else if(otherEnd &gt; 0 &amp;&amp; otherStart == 0) {</b>
+<b class="fc"><i>924</i>&nbsp;					textObject.alignRightEdgeTo(maxX);</b>
+<b class="fc"><i>925</i>&nbsp;				} else if(otherEnd &gt; 0 &amp;&amp; otherStart &gt; 0){</b>
+<b class="fc"><i>926</i>&nbsp;					if(otherEnd &gt; otherStart){</b>
+<b class="nc"><i>927</i>&nbsp;						textObject.alignRightEdgeTo(maxX);</b>
+<b class="fc"><i>928</i>&nbsp;					} else if(otherEnd == otherStart){</b>
+<b class="nc"><i>929</i>&nbsp;						textObject.centerHorizontallyBetween(minX, maxX);</b>
+<i>930</i>&nbsp;					}
+<i>931</i>&nbsp;				}
+<i>932</i>&nbsp;
+<b class="fc"><i>933</i>&nbsp;				addToTextObjects(textObject);</b>
+<b class="fc"><i>934</i>&nbsp;			}</b>
+<b class="fc"><i>935</i>&nbsp;		}</b>
+<i>936</i>&nbsp;
+<i>937</i>&nbsp;		if (DEBUG)
+<i>938</i>&nbsp;			System.out.println(&quot;Positioned text&quot;);
+<i>939</i>&nbsp;
+<i>940</i>&nbsp;		//correct the color of the text objects according
+<i>941</i>&nbsp;		//to the underlying color
+<b class="fc"><i>942</i>&nbsp;		Iterator shapes = this.getAllDiagramShapes().iterator();</b>
+<b class="fc"><i>943</i>&nbsp;		while(shapes.hasNext()){</b>
+<b class="fc"><i>944</i>&nbsp;			DiagramShape shape = (DiagramShape) shapes.next();</b>
+<b class="fc"><i>945</i>&nbsp;			Color fillColor = shape.getFillColor();</b>
+<b class="fc"><i>946</i>&nbsp;			if(shape.isClosed()</b>
+<b class="fc"><i>947</i>&nbsp;					&amp;&amp; shape.getType() != DiagramShape.TYPE_ARROWHEAD</b>
+<i>948</i>&nbsp;					&amp;&amp; fillColor != null
+<b class="fc"><i>949</i>&nbsp;					&amp;&amp; BitmapRenderer.isColorDark(fillColor)){</b>
+<b class="fc"><i>950</i>&nbsp;				Iterator textObjects = getTextObjects().iterator();</b>
+<b class="fc"><i>951</i>&nbsp;				while(textObjects.hasNext()){</b>
+<b class="fc"><i>952</i>&nbsp;					DiagramText textObject = (DiagramText) textObjects.next();</b>
+<b class="fc"><i>953</i>&nbsp;					if(shape.intersects(textObject.getBounds())){</b>
+<b class="fc"><i>954</i>&nbsp;						textObject.setColor(Color.white);</b>
+<i>955</i>&nbsp;					}
+<b class="fc"><i>956</i>&nbsp;				}</b>
+<i>957</i>&nbsp;			}
+<b class="fc"><i>958</i>&nbsp;		}</b>
+<i>959</i>&nbsp;
+<i>960</i>&nbsp;		//set outline to true for test within custom shapes
+<b class="fc"><i>961</i>&nbsp;		shapes = this.getAllDiagramShapes().iterator();</b>
+<b class="fc"><i>962</i>&nbsp;		while(shapes.hasNext()){</b>
+<b class="fc"><i>963</i>&nbsp;			DiagramShape shape = (DiagramShape) shapes.next();</b>
+<b class="fc"><i>964</i>&nbsp;			if(shape.getType() == DiagramShape.TYPE_CUSTOM){</b>
+<b class="nc"><i>965</i>&nbsp;				Iterator textObjects = getTextObjects().iterator();</b>
+<b class="nc"><i>966</i>&nbsp;				while(textObjects.hasNext()){</b>
+<b class="nc"><i>967</i>&nbsp;					DiagramText textObject = (DiagramText) textObjects.next();</b>
+<b class="nc"><i>968</i>&nbsp;					if (shape.intersects(textObject.getBounds())) {</b>
+<b class="nc"><i>969</i>&nbsp;						textObject.setHasOutline(true);</b>
+<b class="nc"><i>970</i>&nbsp;						textObject.setColor(DiagramText.DEFAULT_COLOR);</b>
+<i>971</i>&nbsp;					}
+<b class="nc"><i>972</i>&nbsp;				}</b>
+<i>973</i>&nbsp;			}
+<b class="fc"><i>974</i>&nbsp;		}</b>
+<b class="fc"><i>975</i>&nbsp;	}</b>
+<i>976</i>&nbsp;
+<i>977</i>&nbsp;	/*
+<i>978</i>&nbsp;	 * Finds the arrowheads in grid and adds them to this.shapes
+<i>979</i>&nbsp;	 * @ assignable this.shapes
+<i>980</i>&nbsp;	 * @ requires grid is non-null, this.shapes it non-null
+<i>981</i>&nbsp;	 * @ ensures all arrowhead characters in grid are represented by shapes in this.shapes
+<i>982</i>&nbsp;	 */
+<i>983</i>&nbsp;	private void makeArrowheads(TextGrid grid) {
+<b class="fc"><i>984</i>&nbsp;		assert (grid != null &amp;&amp; this.shapes != null);</b>
+<i>985</i>&nbsp;
+<i>986</i>&nbsp;		//make arrowheads
+<b class="fc"><i>987</i>&nbsp;		Iterator arrowheadCells = grid.findArrowheads().iterator();</b>
+<b class="fc"><i>988</i>&nbsp;		while(arrowheadCells.hasNext()){</b>
+<b class="fc"><i>989</i>&nbsp;			TextGrid.Cell cell = (TextGrid.Cell) arrowheadCells.next();</b>
+<b class="fc"><i>990</i>&nbsp;			DiagramShape arrowhead = DiagramShape.createArrowhead(grid, cell, cellWidth, cellHeight);</b>
+<b class="fc"><i>991</i>&nbsp;			if(arrowhead != null) addToShapes(arrowhead);</b>
+<b class="nc"><i>992</i>&nbsp;			else System.err.println(&quot;Could not create arrowhead shape. Unexpected error.&quot;);</b>
+<b class="fc"><i>993</i>&nbsp;		}</b>
+<b class="fc"><i>994</i>&nbsp;	}</b>
+<i>995</i>&nbsp;
+<i>996</i>&nbsp;	/*
+<i>997</i>&nbsp;	 * Finds the point markers in grid and adds them to this.shapes
+<i>998</i>&nbsp;	 * @ assignable this.shapes
+<i>999</i>&nbsp;	 * @ requires grid is non-null, this.shapes is non-null
+<i>1000</i>&nbsp;	 * @ ensures all point markers (&#39;*&#39;) in grid are represented by shapes in this.shapes
+<i>1001</i>&nbsp;	 */
+<i>1002</i>&nbsp;	private void makePointMarkers(TextGrid grid) {
+<b class="fc"><i>1003</i>&nbsp;		assert (grid != null &amp;&amp; this.shapes != null);</b>
+<i>1004</i>&nbsp;
+<i>1005</i>&nbsp;		//make point markers
+<b class="fc"><i>1006</i>&nbsp;		Iterator markersIt = grid.getPointMarkersOnLine().iterator();</b>
+<b class="fc"><i>1007</i>&nbsp;		while (markersIt.hasNext()) {</b>
+<b class="fc"><i>1008</i>&nbsp;			TextGrid.Cell cell = (TextGrid.Cell) markersIt.next();</b>
+<i>1009</i>&nbsp;
+<b class="fc"><i>1010</i>&nbsp;			DiagramShape mark = new DiagramShape();</b>
+<b class="fc"><i>1011</i>&nbsp;			mark.addToPoints(new ShapePoint(</b>
+<b class="fc"><i>1012</i>&nbsp;					getCellMidX(cell),</b>
+<b class="fc"><i>1013</i>&nbsp;					getCellMidY(cell)</b>
+<i>1014</i>&nbsp;			));
+<b class="fc"><i>1015</i>&nbsp;			mark.setType(DiagramShape.TYPE_POINT_MARKER);</b>
+<b class="fc"><i>1016</i>&nbsp;			mark.setFillColor(Color.white);</b>
+<b class="fc"><i>1017</i>&nbsp;			shapes.add(mark);</b>
+<b class="fc"><i>1018</i>&nbsp;		}</b>
+<b class="fc"><i>1019</i>&nbsp;	}</b>
+<i>1020</i>&nbsp;
+<i>1021</i>&nbsp;	private void addToTextObjects(DiagramText shape){
+<b class="fc"><i>1022</i>&nbsp;		textObjects.add(shape);</b>
+<b class="fc"><i>1023</i>&nbsp;	}</b>
+<i>1024</i>&nbsp;
+<i>1025</i>&nbsp;	private void addToCompositeShapes(CompositeDiagramShape shape){
+<b class="fc"><i>1026</i>&nbsp;		compositeShapes.add(shape);</b>
+<b class="fc"><i>1027</i>&nbsp;	}</b>
+<i>1028</i>&nbsp;
+<i>1029</i>&nbsp;	
+<i>1030</i>&nbsp;	private void addToShapes(DiagramShape shape){
+<b class="fc"><i>1031</i>&nbsp;		shapes.add(shape);</b>
+<b class="fc"><i>1032</i>&nbsp;	}</b>
+<i>1033</i>&nbsp;	
+<i>1034</i>&nbsp;	public /*@pure@*/ Iterator getShapesIterator(){
+<b class="fc"><i>1035</i>&nbsp;		return shapes.iterator();</b>
+<i>1036</i>&nbsp;	}	
+<i>1037</i>&nbsp;
+<i>1038</i>&nbsp;	/**
+<i>1039</i>&nbsp;	 * @return
+<i>1040</i>&nbsp;	 */
+<i>1041</i>&nbsp;	public /*@pure@*/ int getPxHeight() {
+<b class="fc"><i>1042</i>&nbsp;		return pxHeight;</b>
+<i>1043</i>&nbsp;	}
+<i>1044</i>&nbsp;
+<i>1045</i>&nbsp;	/**
+<i>1046</i>&nbsp;	 * @return
+<i>1047</i>&nbsp;	 */
+<i>1048</i>&nbsp;	public /*@pure@*/ int getPxWidth() {
+<b class="fc"><i>1049</i>&nbsp;		return pxWidth;</b>
+<i>1050</i>&nbsp;	}
+<i>1051</i>&nbsp;
+<i>1052</i>&nbsp;	/**
+<i>1053</i>&nbsp;	 * @return
+<i>1054</i>&nbsp;	 */
+<i>1055</i>&nbsp;	public /*@pure@*/ int getCellWidth() {
+<b class="fc"><i>1056</i>&nbsp;		return cellWidth;</b>
+<i>1057</i>&nbsp;	}
+<i>1058</i>&nbsp;
+<i>1059</i>&nbsp;	/**
+<i>1060</i>&nbsp;	 * @return
+<i>1061</i>&nbsp;	 */
+<i>1062</i>&nbsp;	public /*@pure@*/ int getCellHeight() {
+<b class="fc"><i>1063</i>&nbsp;		return cellHeight;</b>
+<i>1064</i>&nbsp;	}
+<i>1065</i>&nbsp;
+<i>1066</i>&nbsp;	/**
+<i>1067</i>&nbsp;	 * @return
+<i>1068</i>&nbsp;	 */
+<i>1069</i>&nbsp;	public /*@pure@*/ ArrayList getCompositeShapes() {
+<b class="fc"><i>1070</i>&nbsp;		return compositeShapes;</b>
+<i>1071</i>&nbsp;	}
+<i>1072</i>&nbsp;
+<i>1073</i>&nbsp;	/**
+<i>1074</i>&nbsp;	 * @return
+<i>1075</i>&nbsp;	 */
+<i>1076</i>&nbsp;	public /*@pure@*/ ArrayList getShapes() {
+<b class="fc"><i>1077</i>&nbsp;		return shapes;</b>
+<i>1078</i>&nbsp;	}
+<i>1079</i>&nbsp;	
+<i>1080</i>&nbsp;	public /*@pure@*/ int getCellMinX(TextGrid.Cell cell){
+<b class="fc"><i>1081</i>&nbsp;		return getCellMinX(cell, cellWidth);</b>
+<i>1082</i>&nbsp;	}
+<i>1083</i>&nbsp;	public /*@pure@*/ static int getCellMinX(TextGrid.Cell cell, int cellXSize){
+<b class="fc"><i>1084</i>&nbsp;		return cell.x * cellXSize;</b>
+<i>1085</i>&nbsp;	}
+<i>1086</i>&nbsp;
+<i>1087</i>&nbsp;	public /*@pure@*/ int getCellMidX(TextGrid.Cell cell){
+<b class="fc"><i>1088</i>&nbsp;		return getCellMidX(cell, cellWidth);</b>
+<i>1089</i>&nbsp;	}
+<i>1090</i>&nbsp;	public /*@pure@*/ static int getCellMidX(TextGrid.Cell cell, int cellXSize){
+<b class="fc"><i>1091</i>&nbsp;		return cell.x * cellXSize + cellXSize / 2;</b>
+<i>1092</i>&nbsp;	}
+<i>1093</i>&nbsp;
+<i>1094</i>&nbsp;	public /*@pure@*/ int getCellMaxX(TextGrid.Cell cell){
+<b class="fc"><i>1095</i>&nbsp;		return getCellMaxX(cell, cellWidth);</b>
+<i>1096</i>&nbsp;	}
+<i>1097</i>&nbsp;	public /*@pure@*/ static int getCellMaxX(TextGrid.Cell cell, int cellXSize){
+<b class="fc"><i>1098</i>&nbsp;		return cell.x * cellXSize + cellXSize;</b>
+<i>1099</i>&nbsp;	}
+<i>1100</i>&nbsp;
+<i>1101</i>&nbsp;	public /*@pure@*/ int getCellMinY(TextGrid.Cell cell){
+<b class="fc"><i>1102</i>&nbsp;		return getCellMinY(cell, cellHeight);</b>
+<i>1103</i>&nbsp;	}
+<i>1104</i>&nbsp;	public /*@pure@*/ static int getCellMinY(TextGrid.Cell cell, int cellYSize){
+<b class="fc"><i>1105</i>&nbsp;		return cell.y * cellYSize;</b>
+<i>1106</i>&nbsp;	}
+<i>1107</i>&nbsp;
+<i>1108</i>&nbsp;	public /*@pure@*/ int getCellMidY(TextGrid.Cell cell){
+<b class="fc"><i>1109</i>&nbsp;		return getCellMidY(cell, cellHeight);</b>
+<i>1110</i>&nbsp;	}
+<i>1111</i>&nbsp;	public /*@pure@*/ static int getCellMidY(TextGrid.Cell cell, int cellYSize){
+<b class="fc"><i>1112</i>&nbsp;		return cell.y * cellYSize + cellYSize / 2;</b>
+<i>1113</i>&nbsp;	}
+<i>1114</i>&nbsp;
+<i>1115</i>&nbsp;	public /*@pure@*/ int getCellMaxY(TextGrid.Cell cell){
+<b class="fc"><i>1116</i>&nbsp;		return getCellMaxY(cell, cellHeight);</b>
+<i>1117</i>&nbsp;	}
+<i>1118</i>&nbsp;	public /*@pure@*/ static int getCellMaxY(TextGrid.Cell cell, int cellYSize){
+<b class="fc"><i>1119</i>&nbsp;		return cell.y * cellYSize + cellYSize;</b>
+<i>1120</i>&nbsp;	}
+<i>1121</i>&nbsp;
+<i>1122</i>&nbsp;	public /*@pure@*/ TextGrid.Cell getCellFor(ShapePoint point){
+<b class="fc"><i>1123</i>&nbsp;		if(point == null) throw new IllegalArgumentException(&quot;ShapePoint cannot be null&quot;);</b>
+<i>1124</i>&nbsp;		//TODO: the fake grid is a problem
+<b class="fc"><i>1125</i>&nbsp;		TextGrid g = new TextGrid();</b>
+<b class="fc"><i>1126</i>&nbsp;		return g.new Cell((int) point.x / cellWidth,</b>
+<i>1127</i>&nbsp;							(int) point.y / cellHeight);
+<i>1128</i>&nbsp;	}
+<i>1129</i>&nbsp;
+<i>1130</i>&nbsp;	public /*@pure@*/ ArrayList getTextObjects() {
+<b class="fc"><i>1131</i>&nbsp;		return textObjects;</b>
+<i>1132</i>&nbsp;	}
+<i>1133</i>&nbsp;
+<i>1134</i>&nbsp;}
+</div>
+</div>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2020-11-30 23:33</div>
+</div>
+</body>
+</html>

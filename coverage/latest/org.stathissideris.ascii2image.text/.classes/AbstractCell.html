@@ -1,0 +1,207 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html id="htmlId">
+<head>
+  <title>Coverage Report :: AbstractCell</title>
+  <style type="text/css">
+    @import "../../.css/coverage.css";
+  </style>
+</head>
+
+<body>
+<div class="header"></div>
+
+<div class="content">
+<div class="breadCrumbs">
+    [ <a href="../../index.html">all classes</a> ]
+    [ <a href="../index.html">org.stathissideris.ascii2image.text</a> ]
+</div>
+
+<h1>Coverage Summary for Class: AbstractCell (org.stathissideris.ascii2image.text)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AbstractCell</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/ 1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    92.3%
+  </span>
+  <span class="absValue">
+    (12/ 13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    91.2%
+  </span>
+  <span class="absValue">
+    (52/ 57)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<div class="sourceCode"><i>1</i>&nbsp;/*
+<i>2</i>&nbsp; * DiTAA - Diagrams Through Ascii Art
+<i>3</i>&nbsp; * 
+<i>4</i>&nbsp; * Copyright (C) 2004 Efstathios Sideris
+<i>5</i>&nbsp; *
+<i>6</i>&nbsp; * This program is free software; you can redistribute it and/or
+<i>7</i>&nbsp; * modify it under the terms of the GNU General Public License
+<i>8</i>&nbsp; * as published by the Free Software Foundation; either version 2
+<i>9</i>&nbsp; * of the License, or (at your option) any later version.
+<i>10</i>&nbsp; *
+<i>11</i>&nbsp; * This program is distributed in the hope that it will be useful,
+<i>12</i>&nbsp; * but WITHOUT ANY WARRANTY; without even the implied warranty of
+<i>13</i>&nbsp; * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<i>14</i>&nbsp; * GNU General Public License for more details.
+<i>15</i>&nbsp; *
+<i>16</i>&nbsp; * You should have received a copy of the GNU General Public License
+<i>17</i>&nbsp; * along with this program; if not, write to the Free Software
+<i>18</i>&nbsp; * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+<i>19</i>&nbsp; *   
+<i>20</i>&nbsp; */
+<i>21</i>&nbsp;package org.stathissideris.ascii2image.text;
+<i>22</i>&nbsp;
+<i>23</i>&nbsp;/**
+<i>24</i>&nbsp; * 
+<i>25</i>&nbsp; * @author Efstathios Sideris
+<i>26</i>&nbsp; */
+<b class="fc"><i>27</i>&nbsp;public class AbstractCell {</b>
+<i>28</i>&nbsp;
+<b class="fc"><i>29</i>&nbsp;	public int rows[][] = new int[3][3];</b>
+<i>30</i>&nbsp;	{
+<b class="fc"><i>31</i>&nbsp;		for(int y = 0; y &lt; 3; y++)</b>
+<b class="fc"><i>32</i>&nbsp;			for(int x = 0; x &lt; 3; x++)</b>
+<b class="fc"><i>33</i>&nbsp;				rows[x][y] = 0;</b>
+<b class="fc"><i>34</i>&nbsp;	}</b>
+<i>35</i>&nbsp;
+<i>36</i>&nbsp;	static AbstractCell makeHorizontalLine(){
+<b class="fc"><i>37</i>&nbsp;		AbstractCell result = new AbstractCell();</b>
+<b class="fc"><i>38</i>&nbsp;		result.rows[0][1] = 1;</b>
+<b class="fc"><i>39</i>&nbsp;		result.rows[1][1] = 1;</b>
+<b class="fc"><i>40</i>&nbsp;		result.rows[2][1] = 1;</b>
+<b class="fc"><i>41</i>&nbsp;		return result;</b>
+<i>42</i>&nbsp;	}
+<i>43</i>&nbsp;
+<i>44</i>&nbsp;	static AbstractCell makeVerticalLine(){
+<b class="fc"><i>45</i>&nbsp;		AbstractCell result = new AbstractCell();</b>
+<b class="fc"><i>46</i>&nbsp;		result.rows[1][0] = 1;</b>
+<b class="fc"><i>47</i>&nbsp;		result.rows[1][1] = 1;</b>
+<b class="fc"><i>48</i>&nbsp;		result.rows[1][2] = 1;</b>
+<b class="fc"><i>49</i>&nbsp;		return result;</b>
+<i>50</i>&nbsp;	}
+<i>51</i>&nbsp;
+<i>52</i>&nbsp;	static AbstractCell makeCorner1(){
+<b class="fc"><i>53</i>&nbsp;		AbstractCell result = new AbstractCell();</b>
+<b class="fc"><i>54</i>&nbsp;		result.rows[1][1] = 1;</b>
+<b class="fc"><i>55</i>&nbsp;		result.rows[1][2] = 1;</b>
+<b class="fc"><i>56</i>&nbsp;		result.rows[2][1] = 1;</b>
+<b class="fc"><i>57</i>&nbsp;		return result;</b>
+<i>58</i>&nbsp;	}
+<i>59</i>&nbsp;
+<i>60</i>&nbsp;	static AbstractCell makeCorner2(){
+<b class="fc"><i>61</i>&nbsp;		AbstractCell result = new AbstractCell();</b>
+<b class="fc"><i>62</i>&nbsp;		result.rows[0][1] = 1;</b>
+<b class="fc"><i>63</i>&nbsp;		result.rows[1][1] = 1;</b>
+<b class="fc"><i>64</i>&nbsp;		result.rows[1][2] = 1;</b>
+<b class="fc"><i>65</i>&nbsp;		return result;</b>
+<i>66</i>&nbsp;	}
+<i>67</i>&nbsp;
+<i>68</i>&nbsp;	static AbstractCell makeCorner3(){
+<b class="fc"><i>69</i>&nbsp;		AbstractCell result = new AbstractCell();</b>
+<b class="fc"><i>70</i>&nbsp;		result.rows[0][1] = 1;</b>
+<b class="fc"><i>71</i>&nbsp;		result.rows[1][1] = 1;</b>
+<b class="fc"><i>72</i>&nbsp;		result.rows[1][0] = 1;</b>
+<b class="fc"><i>73</i>&nbsp;		return result;</b>
+<i>74</i>&nbsp;	}
+<i>75</i>&nbsp;
+<i>76</i>&nbsp;	static AbstractCell makeCorner4(){
+<b class="fc"><i>77</i>&nbsp;		AbstractCell result = new AbstractCell();</b>
+<b class="fc"><i>78</i>&nbsp;		result.rows[2][1] = 1;</b>
+<b class="fc"><i>79</i>&nbsp;		result.rows[1][1] = 1;</b>
+<b class="fc"><i>80</i>&nbsp;		result.rows[1][0] = 1;</b>
+<b class="fc"><i>81</i>&nbsp;		return result;</b>
+<i>82</i>&nbsp;	}
+<i>83</i>&nbsp;
+<i>84</i>&nbsp;	static AbstractCell makeT(){
+<b class="fc"><i>85</i>&nbsp;		AbstractCell result = AbstractCell.makeHorizontalLine();</b>
+<b class="fc"><i>86</i>&nbsp;		result.rows[1][2] = 1;</b>
+<b class="fc"><i>87</i>&nbsp;		return result;</b>
+<i>88</i>&nbsp;	}
+<i>89</i>&nbsp;
+<i>90</i>&nbsp;	static AbstractCell makeInverseT(){
+<b class="fc"><i>91</i>&nbsp;		AbstractCell result = AbstractCell.makeHorizontalLine();</b>
+<b class="fc"><i>92</i>&nbsp;		result.rows[1][0] = 1;</b>
+<b class="fc"><i>93</i>&nbsp;		return result;</b>
+<i>94</i>&nbsp;	}
+<i>95</i>&nbsp;
+<i>96</i>&nbsp;	static AbstractCell makeK(){
+<b class="fc"><i>97</i>&nbsp;		AbstractCell result = AbstractCell.makeVerticalLine();</b>
+<b class="fc"><i>98</i>&nbsp;		result.rows[2][1] = 1;</b>
+<b class="fc"><i>99</i>&nbsp;		return result;</b>
+<i>100</i>&nbsp;	}
+<i>101</i>&nbsp;
+<i>102</i>&nbsp;	static AbstractCell makeInverseK(){
+<b class="fc"><i>103</i>&nbsp;		AbstractCell result = AbstractCell.makeVerticalLine();</b>
+<b class="fc"><i>104</i>&nbsp;		result.rows[0][1] = 1;</b>
+<b class="fc"><i>105</i>&nbsp;		return result;</b>
+<i>106</i>&nbsp;	}
+<i>107</i>&nbsp;
+<i>108</i>&nbsp;	static AbstractCell makeCross(){
+<b class="fc"><i>109</i>&nbsp;		AbstractCell result = AbstractCell.makeVerticalLine();</b>
+<b class="fc"><i>110</i>&nbsp;		result.rows[0][1] = 1;</b>
+<b class="fc"><i>111</i>&nbsp;		result.rows[2][1] = 1;</b>
+<b class="fc"><i>112</i>&nbsp;		return result;</b>
+<i>113</i>&nbsp;	}
+<i>114</i>&nbsp;
+<i>115</i>&nbsp;	static AbstractCell makeStar(){
+<b class="nc"><i>116</i>&nbsp;		AbstractCell result = AbstractCell.makeVerticalLine();</b>
+<b class="nc"><i>117</i>&nbsp;		for(int y = 0; y &lt; 3; y++)</b>
+<b class="nc"><i>118</i>&nbsp;			for(int x = 0; x &lt; 3; x++)</b>
+<b class="nc"><i>119</i>&nbsp;				result.rows[x][y] = 1;</b>
+<b class="nc"><i>120</i>&nbsp;		return result;</b>
+<i>121</i>&nbsp;	}
+<i>122</i>&nbsp;
+<i>123</i>&nbsp;
+<i>124</i>&nbsp;}
+</div>
+</div>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2020-11-30 23:33</div>
+</div>
+</body>
+</html>

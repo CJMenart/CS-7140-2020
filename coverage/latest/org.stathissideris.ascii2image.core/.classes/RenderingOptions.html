@@ -1,0 +1,199 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html id="htmlId">
+<head>
+  <title>Coverage Report :: RenderingOptions</title>
+  <style type="text/css">
+    @import "../../.css/coverage.css";
+  </style>
+</head>
+
+<body>
+<div class="header"></div>
+
+<div class="content">
+<div class="breadCrumbs">
+    [ <a href="../../index.html">all classes</a> ]
+    [ <a href="../index.html">org.stathissideris.ascii2image.core</a> ]
+</div>
+
+<h1>Coverage Summary for Class: RenderingOptions (org.stathissideris.ascii2image.core)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RenderingOptions</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/ 1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    54.5%
+  </span>
+  <span class="absValue">
+    (6/ 11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    52.2%
+  </span>
+  <span class="absValue">
+    (12/ 23)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<div class="sourceCode"><i>1</i>&nbsp;/*
+<i>2</i>&nbsp; * DiTAA - Diagrams Through Ascii Art
+<i>3</i>&nbsp; * 
+<i>4</i>&nbsp; * Copyright (C) 2004 Efstathios Sideris
+<i>5</i>&nbsp; *
+<i>6</i>&nbsp; * This program is free software; you can redistribute it and/or
+<i>7</i>&nbsp; * modify it under the terms of the GNU General Public License
+<i>8</i>&nbsp; * as published by the Free Software Foundation; either version 2
+<i>9</i>&nbsp; * of the License, or (at your option) any later version.
+<i>10</i>&nbsp; *
+<i>11</i>&nbsp; * This program is distributed in the hope that it will be useful,
+<i>12</i>&nbsp; * but WITHOUT ANY WARRANTY; without even the implied warranty of
+<i>13</i>&nbsp; * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<i>14</i>&nbsp; * GNU General Public License for more details.
+<i>15</i>&nbsp; *
+<i>16</i>&nbsp; * You should have received a copy of the GNU General Public License
+<i>17</i>&nbsp; * along with this program; if not, write to the Free Software
+<i>18</i>&nbsp; * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+<i>19</i>&nbsp; *   
+<i>20</i>&nbsp; */
+<i>21</i>&nbsp;package org.stathissideris.ascii2image.core;
+<i>22</i>&nbsp;
+<i>23</i>&nbsp;import java.util.HashMap;
+<i>24</i>&nbsp;
+<i>25</i>&nbsp;import org.stathissideris.ascii2image.graphics.CustomShapeDefinition;
+<i>26</i>&nbsp;
+<i>27</i>&nbsp;/**
+<i>28</i>&nbsp; * 
+<i>29</i>&nbsp; * @author Efstathios Sideris
+<i>30</i>&nbsp; */
+<b class="fc"><i>31</i>&nbsp;public class RenderingOptions {</b>
+<i>32</i>&nbsp;
+<i>33</i>&nbsp;	private HashMap&lt;String, CustomShapeDefinition&gt; customShapes;
+<i>34</i>&nbsp;	
+<b class="fc"><i>35</i>&nbsp;	private boolean dropShadows = true;</b>
+<b class="fc"><i>36</i>&nbsp;	private boolean renderDebugLines = false;</b>
+<b class="fc"><i>37</i>&nbsp;	private boolean antialias = true;</b>
+<i>38</i>&nbsp;
+<b class="fc"><i>39</i>&nbsp;	private int cellWidth = 10;</b>
+<b class="fc"><i>40</i>&nbsp;	private int cellHeight = 14;</b>
+<i>41</i>&nbsp;	
+<b class="fc"><i>42</i>&nbsp;	private float scale = 1;</b>
+<i>43</i>&nbsp;
+<i>44</i>&nbsp;	/**
+<i>45</i>&nbsp;	 * @return
+<i>46</i>&nbsp;	 */
+<i>47</i>&nbsp;	public int getCellHeight() {
+<b class="fc"><i>48</i>&nbsp;		return cellHeight;</b>
+<i>49</i>&nbsp;	}
+<i>50</i>&nbsp;
+<i>51</i>&nbsp;	/**
+<i>52</i>&nbsp;	 * @return
+<i>53</i>&nbsp;	 */
+<i>54</i>&nbsp;	public int getCellWidth() {
+<b class="fc"><i>55</i>&nbsp;		return cellWidth;</b>
+<i>56</i>&nbsp;	}
+<i>57</i>&nbsp;
+<i>58</i>&nbsp;	/**
+<i>59</i>&nbsp;	 * @return
+<i>60</i>&nbsp;	 */
+<i>61</i>&nbsp;	public boolean dropShadows() {
+<b class="fc"><i>62</i>&nbsp;		return dropShadows;</b>
+<i>63</i>&nbsp;	}
+<i>64</i>&nbsp;
+<i>65</i>&nbsp;	/**
+<i>66</i>&nbsp;	 * @return
+<i>67</i>&nbsp;	 */
+<i>68</i>&nbsp;	public boolean renderDebugLines() {
+<b class="fc"><i>69</i>&nbsp;		return renderDebugLines;</b>
+<i>70</i>&nbsp;	}
+<i>71</i>&nbsp;
+<i>72</i>&nbsp;	/**
+<i>73</i>&nbsp;	 * @return
+<i>74</i>&nbsp;	 */
+<i>75</i>&nbsp;	public float getScale() {
+<b class="nc"><i>76</i>&nbsp;		return scale;</b>
+<i>77</i>&nbsp;	}
+<i>78</i>&nbsp;
+<i>79</i>&nbsp;	/**
+<i>80</i>&nbsp;	 * @param b
+<i>81</i>&nbsp;	 */
+<i>82</i>&nbsp;	public void setDropShadows(boolean b) {
+<b class="nc"><i>83</i>&nbsp;		dropShadows = b;</b>
+<b class="nc"><i>84</i>&nbsp;	}</b>
+<i>85</i>&nbsp;
+<i>86</i>&nbsp;	/**
+<i>87</i>&nbsp;	 * @param b
+<i>88</i>&nbsp;	 */
+<i>89</i>&nbsp;	public void setRenderDebugLines(boolean b) {
+<b class="nc"><i>90</i>&nbsp;		renderDebugLines = b;</b>
+<b class="nc"><i>91</i>&nbsp;	}</b>
+<i>92</i>&nbsp;
+<i>93</i>&nbsp;	/**
+<i>94</i>&nbsp;	 * @param f
+<i>95</i>&nbsp;	 */
+<i>96</i>&nbsp;	public void setScale(float f) {
+<b class="nc"><i>97</i>&nbsp;		scale = f;</b>
+<b class="nc"><i>98</i>&nbsp;		cellWidth *= scale;</b>
+<b class="nc"><i>99</i>&nbsp;		cellHeight *= scale;</b>
+<b class="nc"><i>100</i>&nbsp;	}</b>
+<i>101</i>&nbsp;
+<i>102</i>&nbsp;	/**
+<i>103</i>&nbsp;	 * @return
+<i>104</i>&nbsp;	 */
+<i>105</i>&nbsp;	public boolean performAntialias() {
+<b class="fc"><i>106</i>&nbsp;		return antialias;</b>
+<i>107</i>&nbsp;	}
+<i>108</i>&nbsp;
+<i>109</i>&nbsp;	/**
+<i>110</i>&nbsp;	 * @param b
+<i>111</i>&nbsp;	 */
+<i>112</i>&nbsp;	public void setAntialias(boolean b) {
+<b class="nc"><i>113</i>&nbsp;		antialias = b;</b>
+<b class="nc"><i>114</i>&nbsp;	}</b>
+<i>115</i>&nbsp;
+<i>116</i>&nbsp;}
+</div>
+</div>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2020-11-30 23:33</div>
+</div>
+</body>
+</html>

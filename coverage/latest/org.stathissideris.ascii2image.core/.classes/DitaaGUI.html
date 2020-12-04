@@ -1,0 +1,385 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html id="htmlId">
+<head>
+  <title>Coverage Report :: DitaaGUI</title>
+  <style type="text/css">
+    @import "../../.css/coverage.css";
+  </style>
+</head>
+
+<body>
+<div class="header"></div>
+
+<div class="content">
+<div class="breadCrumbs">
+    [ <a href="../../index.html">all classes</a> ]
+    [ <a href="../index.html">org.stathissideris.ascii2image.core</a> ]
+</div>
+
+<h1>Coverage Summary for Class: DitaaGUI (org.stathissideris.ascii2image.core)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DitaaGUI</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/ 9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/ 66)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DitaaGUI$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/ 2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/ 22)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">DitaaGUI$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/ 2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/ 12)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/ 13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/ 100)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<div class="sourceCode"><i>1</i>&nbsp;package org.stathissideris.ascii2image.core;
+<i>2</i>&nbsp;
+<i>3</i>&nbsp;import java.awt.*;
+<i>4</i>&nbsp;import java.awt.event.ActionEvent;
+<i>5</i>&nbsp;import java.awt.event.ActionListener;
+<i>6</i>&nbsp;import java.io.File;
+<i>7</i>&nbsp;import java.io.IOException;
+<i>8</i>&nbsp;import java.nio.file.Files;
+<i>9</i>&nbsp;import java.nio.file.InvalidPathException;
+<i>10</i>&nbsp;import java.nio.file.Path;
+<i>11</i>&nbsp;import java.nio.file.Paths;
+<i>12</i>&nbsp;import javax.imageio.ImageIO;
+<i>13</i>&nbsp;import javax.swing.*;
+<i>14</i>&nbsp;
+<b class="nc"><i>15</i>&nbsp;public class DitaaGUI{</b>
+<i>16</i>&nbsp;    // the main window
+<i>17</i>&nbsp;    private JFrame frame;
+<i>18</i>&nbsp;    // the location of the currently loaded source file
+<i>19</i>&nbsp;    private String sourceFilePath;
+<i>20</i>&nbsp;    // a boolean indicating true when there is a source file and it is readable
+<b class="nc"><i>21</i>&nbsp;    private boolean sourceFileValid = false;</b>
+<i>22</i>&nbsp;    // the location in the temp dir where ditaa has generated the image (once a valid source is loaded)
+<i>23</i>&nbsp;    private String tempOutputLoc;
+<i>24</i>&nbsp;    // keep a reference to the output image label and save buttons at the class level so that they can be accessed
+<i>25</i>&nbsp;    // by both sub-panels
+<i>26</i>&nbsp;    private JLabel outputImagePanel;
+<i>27</i>&nbsp;    private JButton saveFileButton;
+<i>28</i>&nbsp;
+<i>29</i>&nbsp;    // the options to pass to DITAA
+<b class="nc"><i>30</i>&nbsp;    ConversionOptions options = new ConversionOptions();</b>
+<i>31</i>&nbsp;
+<i>32</i>&nbsp;    /**
+<i>33</i>&nbsp;     * Creates a new default DITAA GUI
+<i>34</i>&nbsp;     *
+<i>35</i>&nbsp;     */ 
+<b class="nc"><i>36</i>&nbsp;    public DitaaGUI(){</b>
+<b class="nc"><i>37</i>&nbsp;        this.frame = new JFrame(&quot;DITAA GUI&quot;);</b>
+<b class="nc"><i>38</i>&nbsp;        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);</b>
+<i>39</i>&nbsp;
+<b class="nc"><i>40</i>&nbsp;        this.frame.getContentPane().setLayout(new BoxLayout(this.frame.getContentPane(), BoxLayout.LINE_AXIS));</b>
+<i>41</i>&nbsp;
+<b class="nc"><i>42</i>&nbsp;        JSplitPane mainSplit = new JSplitPane();</b>
+<b class="nc"><i>43</i>&nbsp;        mainSplit.setLeftComponent(this.createSourceContentPane());</b>
+<b class="nc"><i>44</i>&nbsp;        mainSplit.setRightComponent(this.createOutputContentPane());</b>
+<i>45</i>&nbsp;
+<b class="nc"><i>46</i>&nbsp;        this.frame.getContentPane().add(mainSplit);</b>
+<b class="nc"><i>47</i>&nbsp;        this.frame.pack();</b>
+<i>48</i>&nbsp;    }
+<i>49</i>&nbsp;
+<i>50</i>&nbsp;    /**
+<i>51</i>&nbsp;     * Creates a new DITAA GUI which will use the provided conversion options for all invocations of DITAA
+<i>52</i>&nbsp;     */ 
+<i>53</i>&nbsp;    public DitaaGUI(ConversionOptions opts){
+<b class="nc"><i>54</i>&nbsp;        this();</b>
+<i>55</i>&nbsp;
+<b class="nc"><i>56</i>&nbsp;        this.options = opts;</b>
+<i>57</i>&nbsp;    }
+<i>58</i>&nbsp;
+<i>59</i>&nbsp;    /**
+<i>60</i>&nbsp;     * Opens the DITAA GUI
+<i>61</i>&nbsp;     */
+<i>62</i>&nbsp;    public void openGUI() {
+<b class="nc"><i>63</i>&nbsp;        this.frame.setVisible(true);</b>
+<i>64</i>&nbsp;    }
+<i>65</i>&nbsp;
+<i>66</i>&nbsp;    /**
+<i>67</i>&nbsp;     * Creates the Source panel which provides the functions of choosing/loading a file and displaying its contents.
+<i>68</i>&nbsp;     *
+<i>69</i>&nbsp;     * @return the JPanel representing the source panel
+<i>70</i>&nbsp;     */
+<i>71</i>&nbsp;    private JPanel createSourceContentPane(){
+<b class="nc"><i>72</i>&nbsp;        JPanel sourcePanel = new JPanel();</b>
+<b class="nc"><i>73</i>&nbsp;        sourcePanel.setLayout(new BoxLayout(sourcePanel, BoxLayout.PAGE_AXIS));</b>
+<i>74</i>&nbsp;
+<i>75</i>&nbsp;        // Add the text area to display the file contents
+<b class="nc"><i>76</i>&nbsp;        final JTextArea sourceTextArea = new JTextArea();</b>
+<b class="nc"><i>77</i>&nbsp;        sourceTextArea.setRows(30);</b>
+<b class="nc"><i>78</i>&nbsp;        sourceTextArea.setFont(new Font(&quot;monospaced&quot;, Font.PLAIN, 12));</b>
+<b class="nc"><i>79</i>&nbsp;        sourceTextArea.setEditable(false);</b>
+<i>80</i>&nbsp;
+<b class="nc"><i>81</i>&nbsp;        JScrollPane scrollPane = new JScrollPane(sourceTextArea);</b>
+<b class="nc"><i>82</i>&nbsp;        sourcePanel.add(scrollPane);</b>
+<i>83</i>&nbsp;
+<i>84</i>&nbsp;        // Add the button to load a file and label to show the selected file name
+<b class="nc"><i>85</i>&nbsp;        JPanel filePanel = new JPanel();</b>
+<b class="nc"><i>86</i>&nbsp;        filePanel.setLayout(new BoxLayout(filePanel, BoxLayout.LINE_AXIS));</b>
+<i>87</i>&nbsp;
+<i>88</i>&nbsp;        // Add a place to show the selected file name
+<b class="nc"><i>89</i>&nbsp;        JLabel sourceFileLabel = new JLabel();</b>
+<b class="nc"><i>90</i>&nbsp;        sourceFileLabel.setText(&quot;Selected File: &quot;);</b>
+<b class="nc"><i>91</i>&nbsp;        filePanel.add(sourceFileLabel);</b>
+<i>92</i>&nbsp;
+<b class="nc"><i>93</i>&nbsp;        final JTextField filenameField = new JTextField(20);</b>
+<b class="nc"><i>94</i>&nbsp;        filenameField.setEditable(false);</b>
+<b class="nc"><i>95</i>&nbsp;        filePanel.add(filenameField);</b>
+<i>96</i>&nbsp;
+<i>97</i>&nbsp;        /*
+<i>98</i>&nbsp;         * A button to load the file - most of the logic is driven by the following action which is performed after
+<i>99</i>&nbsp;         * the file is selected and loaded:
+<i>100</i>&nbsp;         * 1. file loaded
+<i>101</i>&nbsp;         * 2. file read
+<i>102</i>&nbsp;         * if file is readable:
+<i>103</i>&nbsp;         * 3. put contents into text area
+<i>104</i>&nbsp;         * 4. run ditaa
+<i>105</i>&nbsp;         * 5. load ditaa output into the results panel
+<i>106</i>&nbsp;         */
+<b class="nc"><i>107</i>&nbsp;        final JButton loadFileButton = new JButton(&quot;Load file...&quot;);</b>
+<b class="nc"><i>108</i>&nbsp;        loadFileButton.addActionListener(new ActionListener() {</b>
+<i>109</i>&nbsp;            @Override
+<i>110</i>&nbsp;            public void actionPerformed(ActionEvent actionEvent) {
+<b class="nc"><i>111</i>&nbsp;                if(actionEvent.getSource() == loadFileButton){</b>
+<i>112</i>&nbsp;
+<i>113</i>&nbsp;                    // Open a file chooser
+<b class="nc"><i>114</i>&nbsp;                    JFileChooser fileChooser = new JFileChooser();</b>
+<b class="nc"><i>115</i>&nbsp;                    int chooserReturn = fileChooser.showOpenDialog(DitaaGUI.this.frame);</b>
+<b class="nc"><i>116</i>&nbsp;                    if(chooserReturn != JFileChooser.APPROVE_OPTION){</b>
+<i>117</i>&nbsp;                        // if &quot;cancel&quot; or the &#39;x&#39; was used to close the dialog, go no further
+<i>118</i>&nbsp;                        return;
+<i>119</i>&nbsp;                    }
+<b class="nc"><i>120</i>&nbsp;                    File selectedFile = fileChooser.getSelectedFile();</b>
+<i>121</i>&nbsp;
+<i>122</i>&nbsp;                    // set the name of the file
+<b class="nc"><i>123</i>&nbsp;                    DitaaGUI.this.sourceFilePath = selectedFile.getAbsolutePath();</b>
+<b class="nc"><i>124</i>&nbsp;                    filenameField.setText(DitaaGUI.this.sourceFilePath);</b>
+<i>125</i>&nbsp;
+<i>126</i>&nbsp;                    //open the file and set it&#39;s contents in the text area
+<i>127</i>&nbsp;                    String fileContents;
+<i>128</i>&nbsp;                    try {
+<b class="nc"><i>129</i>&nbsp;                        fileContents = new String(Files.readAllBytes(Paths.get(DitaaGUI.this.sourceFilePath)));</b>
+<b class="nc"><i>130</i>&nbsp;                        DitaaGUI.this.sourceFileValid = true;</b>
+<i>131</i>&nbsp;                    }
+<b class="nc"><i>132</i>&nbsp;                    catch(IOException | InvalidPathException e){</b>
+<b class="nc"><i>133</i>&nbsp;                        fileContents = &quot;&lt;&lt; Unable to read selected file :\n&quot; +</b>
+<b class="nc"><i>134</i>&nbsp;                                e.getMessage() +</b>
+<i>135</i>&nbsp;                                &quot;\n&gt;&gt;&quot;;
+<b class="nc"><i>136</i>&nbsp;                        DitaaGUI.this.sourceFileValid = false;</b>
+<b class="nc"><i>137</i>&nbsp;                    }</b>
+<b class="nc"><i>138</i>&nbsp;                    sourceTextArea.setText(fileContents);</b>
+<i>139</i>&nbsp;
+<i>140</i>&nbsp;                    // Run DITAA
+<b class="nc"><i>141</i>&nbsp;                    if(DitaaGUI.this.sourceFileValid) {</b>
+<b class="nc"><i>142</i>&nbsp;                        DitaaGUI.this.tempOutputLoc = DitaaGUI.this.runDitaa();</b>
+<i>143</i>&nbsp;
+<i>144</i>&nbsp;                        // load the output image into the output panel
+<b class="nc"><i>145</i>&nbsp;                        DitaaGUI.this.updateOutputImage();</b>
+<b class="nc"><i>146</i>&nbsp;                        DitaaGUI.this.saveFileButton.setEnabled(true);</b>
+<i>147</i>&nbsp;                    }
+<i>148</i>&nbsp;                    else{
+<i>149</i>&nbsp;                        // set back to false in case it was enabled previously
+<b class="nc"><i>150</i>&nbsp;                        DitaaGUI.this.clearOutputImage();</b>
+<b class="nc"><i>151</i>&nbsp;                        DitaaGUI.this.saveFileButton.setEnabled(false);</b>
+<i>152</i>&nbsp;                    }
+<i>153</i>&nbsp;                }
+<i>154</i>&nbsp;            }
+<i>155</i>&nbsp;        });
+<b class="nc"><i>156</i>&nbsp;        filePanel.add(loadFileButton);</b>
+<i>157</i>&nbsp;
+<b class="nc"><i>158</i>&nbsp;        sourcePanel.add(filePanel);</b>
+<i>159</i>&nbsp;
+<b class="nc"><i>160</i>&nbsp;        return sourcePanel;</b>
+<i>161</i>&nbsp;    }
+<i>162</i>&nbsp;
+<i>163</i>&nbsp;
+<i>164</i>&nbsp;    /**
+<i>165</i>&nbsp;     * Creates the output content panel which provides the functions of previewing DITAA output and saving
+<i>166</i>&nbsp;     *
+<i>167</i>&nbsp;     * @return the JPanel representing the content panel
+<i>168</i>&nbsp;     */
+<i>169</i>&nbsp;    private JPanel createOutputContentPane(){
+<b class="nc"><i>170</i>&nbsp;        JPanel sourcePanel = new JPanel();</b>
+<b class="nc"><i>171</i>&nbsp;        sourcePanel.setLayout(new BoxLayout(sourcePanel, BoxLayout.PAGE_AXIS));</b>
+<i>172</i>&nbsp;
+<i>173</i>&nbsp;        // Add the text area to display the file contents
+<b class="nc"><i>174</i>&nbsp;        this.outputImagePanel = new JLabel();</b>
+<b class="nc"><i>175</i>&nbsp;        JScrollPane scrollPane = new JScrollPane(outputImagePanel);</b>
+<b class="nc"><i>176</i>&nbsp;        sourcePanel.add(scrollPane);</b>
+<i>177</i>&nbsp;
+<b class="nc"><i>178</i>&nbsp;        this.saveFileButton = new JButton(&quot;Save As...&quot;);</b>
+<b class="nc"><i>179</i>&nbsp;        saveFileButton.setEnabled(false); //(disable until a file is loaded)</b>
+<b class="nc"><i>180</i>&nbsp;        saveFileButton.addActionListener(new ActionListener() {</b>
+<i>181</i>&nbsp;            @Override
+<i>182</i>&nbsp;            public void actionPerformed(ActionEvent actionEvent) {
+<b class="nc"><i>183</i>&nbsp;                if(actionEvent.getSource() == saveFileButton){</b>
+<b class="nc"><i>184</i>&nbsp;                    JFileChooser fileChooser = new JFileChooser();</b>
+<b class="nc"><i>185</i>&nbsp;                    int chooserReturn = fileChooser.showSaveDialog(DitaaGUI.this.frame);</b>
+<i>186</i>&nbsp;
+<b class="nc"><i>187</i>&nbsp;                    if(chooserReturn != JFileChooser.APPROVE_OPTION){</b>
+<i>188</i>&nbsp;                        // if &quot;cancel&quot; or the &#39;x&#39; was used to close the dialog, go no further
+<i>189</i>&nbsp;                        return;
+<i>190</i>&nbsp;                    }
+<i>191</i>&nbsp;
+<i>192</i>&nbsp;                    // Get the location and save a copy
+<b class="nc"><i>193</i>&nbsp;                    File selectedFile = fileChooser.getSelectedFile();</b>
+<i>194</i>&nbsp;                    try {
+<b class="nc"><i>195</i>&nbsp;                        Files.copy(Paths.get(DitaaGUI.this.tempOutputLoc), selectedFile.toPath());</b>
+<i>196</i>&nbsp;                    }
+<b class="nc"><i>197</i>&nbsp;                    catch(IOException e){</b>
+<b class="nc"><i>198</i>&nbsp;                        System.err.println(&quot;Unable to save to location &quot; + selectedFile + &quot;:&quot;);</b>
+<b class="nc"><i>199</i>&nbsp;                        System.err.println(e.getMessage());</b>
+<b class="nc"><i>200</i>&nbsp;                        System.err.println(e.getStackTrace());</b>
+<b class="nc"><i>201</i>&nbsp;                    }</b>
+<i>202</i>&nbsp;                }
+<i>203</i>&nbsp;            }
+<i>204</i>&nbsp;        });
+<i>205</i>&nbsp;
+<b class="nc"><i>206</i>&nbsp;        sourcePanel.add(saveFileButton);</b>
+<b class="nc"><i>207</i>&nbsp;        return sourcePanel;</b>
+<i>208</i>&nbsp;    }
+<i>209</i>&nbsp;
+<i>210</i>&nbsp;    /**
+<i>211</i>&nbsp;     * Runs DITAA on the currently selected input file.
+<i>212</i>&nbsp;     *
+<i>213</i>&nbsp;     * @return String representing the path to the output diagram.
+<i>214</i>&nbsp;     */
+<i>215</i>&nbsp;    private String runDitaa(){
+<i>216</i>&nbsp;        // get a temporary file path
+<b class="nc"><i>217</i>&nbsp;        Path outFilePath = null;</b>
+<i>218</i>&nbsp;        try {
+<b class="nc"><i>219</i>&nbsp;            outFilePath = Files.createTempFile(&quot;ditaa&quot;, &quot;.png&quot;);</b>
+<b class="nc"><i>220</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i>221</i>&nbsp;            System.err.println(&quot;Failed to create temp output file:&quot;);</b>
+<b class="nc"><i>222</i>&nbsp;            System.err.println(e.getMessage());</b>
+<b class="nc"><i>223</i>&nbsp;            System.err.println(e.getStackTrace());</b>
+<b class="nc"><i>224</i>&nbsp;        }</b>
+<i>225</i>&nbsp;
+<b class="nc"><i>226</i>&nbsp;        CommandLineConverter.runSimpleMode(this.options, this.sourceFilePath, outFilePath.toString());</b>
+<b class="nc"><i>227</i>&nbsp;        return outFilePath.toString();</b>
+<i>228</i>&nbsp;    }
+<i>229</i>&nbsp;
+<i>230</i>&nbsp;    /**
+<i>231</i>&nbsp;     * Updates the image preview to show the most recently computed DITAA diagram.
+<i>232</i>&nbsp;     */
+<i>233</i>&nbsp;    private void updateOutputImage(){
+<b class="nc"><i>234</i>&nbsp;        if(this.outputImagePanel != null &amp;&amp; this.sourceFileValid &amp;&amp; this.tempOutputLoc != null &amp;&amp; this.tempOutputLoc.length() &gt; 0){</b>
+<i>235</i>&nbsp;            try{
+<b class="nc"><i>236</i>&nbsp;                Image preview = ImageIO.read(new File(this.tempOutputLoc));</b>
+<b class="nc"><i>237</i>&nbsp;                this.outputImagePanel.setIcon(new ImageIcon(preview));</b>
+<i>238</i>&nbsp;            }
+<b class="nc"><i>239</i>&nbsp;            catch(IOException e){</b>
+<b class="nc"><i>240</i>&nbsp;                System.err.println(&quot;Unable to update image preview: &quot; +</b>
+<b class="nc"><i>241</i>&nbsp;                        e.getMessage() +</b>
+<b class="nc"><i>242</i>&nbsp;                        e.getStackTrace());</b>
+<i>243</i>&nbsp;
+<b class="nc"><i>244</i>&nbsp;                this.outputImagePanel.setText(&quot;Error loading preview.&quot;);</b>
+<b class="nc"><i>245</i>&nbsp;            }</b>
+<i>246</i>&nbsp;        }
+<i>247</i>&nbsp;    }
+<i>248</i>&nbsp;
+<i>249</i>&nbsp;    /**
+<i>250</i>&nbsp;     * Clears the currently displayed DITAA diagram.
+<i>251</i>&nbsp;     */
+<i>252</i>&nbsp;    private void clearOutputImage(){
+<b class="nc"><i>253</i>&nbsp;        if(this.outputImagePanel != null){</b>
+<b class="nc"><i>254</i>&nbsp;            this.outputImagePanel.setIcon(null);</b>
+<i>255</i>&nbsp;        }
+<i>256</i>&nbsp;    }
+<i>257</i>&nbsp;}
+</div>
+</div>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2020-11-30 23:33</div>
+</div>
+</body>
+</html>

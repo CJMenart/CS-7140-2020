@@ -1,0 +1,206 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html id="htmlId">
+<head>
+  <title>Coverage Report :: AcceptanceTestSuite</title>
+  <style type="text/css">
+    @import "../../.css/coverage.css";
+  </style>
+</head>
+
+<body>
+<div class="header"></div>
+
+<div class="content">
+<div class="breadCrumbs">
+    [ <a href="../../index.html">all classes</a> ]
+    [ <a href="../index.html">org.stathissideris.ascii2image.test</a> ]
+</div>
+
+<h1>Coverage Summary for Class: AcceptanceTestSuite (org.stathissideris.ascii2image.test)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AcceptanceTestSuite</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (6/ 6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (34/ 34)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AcceptanceTestSuite$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/ 2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/ 2)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (8/ 8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (36/ 36)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<div class="sourceCode"><i>1</i>&nbsp;package org.stathissideris.ascii2image.test;
+<i>2</i>&nbsp;
+<i>3</i>&nbsp;import org.junit.Before;
+<i>4</i>&nbsp;
+<i>5</i>&nbsp;import java.io.File;
+<i>6</i>&nbsp;import java.io.FilenameFilter;
+<i>7</i>&nbsp;import java.io.IOException;
+<i>8</i>&nbsp;import java.io.InputStream;
+<i>9</i>&nbsp;import java.nio.file.Path;
+<i>10</i>&nbsp;import java.nio.file.Files;
+<i>11</i>&nbsp;import java.nio.file.Paths;
+<i>12</i>&nbsp;import java.security.DigestInputStream;
+<i>13</i>&nbsp;import java.security.MessageDigest;
+<i>14</i>&nbsp;import java.security.NoSuchAlgorithmException;
+<i>15</i>&nbsp;import java.util.ArrayList;
+<i>16</i>&nbsp;import java.util.Arrays;
+<i>17</i>&nbsp;import java.util.Collection;
+<i>18</i>&nbsp;
+<i>19</i>&nbsp;import org.junit.Test;
+<i>20</i>&nbsp;import org.junit.runner.RunWith;
+<i>21</i>&nbsp;import org.junit.runners.Parameterized;
+<i>22</i>&nbsp;import org.stathissideris.ascii2image.core.CommandLineConverter;
+<i>23</i>&nbsp;import org.stathissideris.ascii2image.core.ConversionOptions;
+<i>24</i>&nbsp;
+<b class="fc"><i>25</i>&nbsp;@RunWith(Parameterized.class)</b>
+<i>26</i>&nbsp;public class AcceptanceTestSuite {
+<i>27</i>&nbsp;
+<i>28</i>&nbsp;    private String tempDir;
+<i>29</i>&nbsp;    private String inputName;
+<i>30</i>&nbsp;    private ConversionOptions options;
+<i>31</i>&nbsp;
+<i>32</i>&nbsp;    private static final String INPUT_DIR = &quot;tests/text&quot;;
+<i>33</i>&nbsp;
+<b class="fc"><i>34</i>&nbsp;    public AcceptanceTestSuite(String inFile){</b>
+<b class="fc"><i>35</i>&nbsp;        this.inputName = inFile;</b>
+<b class="fc"><i>36</i>&nbsp;        this.options = new ConversionOptions();</b>
+<b class="fc"><i>37</i>&nbsp;    }</b>
+<i>38</i>&nbsp;
+<i>39</i>&nbsp;    @Parameterized.Parameters
+<i>40</i>&nbsp;    public static Collection&lt;Object[]&gt; getInputNames(){
+<b class="fc"><i>41</i>&nbsp;        File fileDir = new File(AcceptanceTestSuite.INPUT_DIR);</b>
+<b class="fc"><i>42</i>&nbsp;        File[] files = fileDir.listFiles(new FilenameFilter() {</b>
+<i>43</i>&nbsp;            @Override
+<i>44</i>&nbsp;            public boolean accept(File dir, String name) {
+<b class="fc"><i>45</i>&nbsp;                return name.endsWith(&quot;.txt&quot;);</b>
+<i>46</i>&nbsp;            }
+<i>47</i>&nbsp;        });
+<i>48</i>&nbsp;
+<b class="fc"><i>49</i>&nbsp;        Collection&lt;Object[]&gt; inputNames = new ArrayList&lt;Object[]&gt;();</b>
+<b class="fc"><i>50</i>&nbsp;        for(File f : files){</b>
+<b class="fc"><i>51</i>&nbsp;            String path = f.getName();</b>
+<i>52</i>&nbsp;            // compute the root name without the extension (know it ends in .txt based on filter)
+<b class="fc"><i>53</i>&nbsp;            String rootPath = path.substring(0, path.length() - 4);</b>
+<i>54</i>&nbsp;            // check for an expected output file
+<b class="fc"><i>55</i>&nbsp;            File outFile = new File(AcceptanceTestSuite.INPUT_DIR + &quot;/&quot; + rootPath + &quot;.png&quot;);</b>
+<b class="fc"><i>56</i>&nbsp;            if(outFile.exists()) {</b>
+<b class="fc"><i>57</i>&nbsp;                inputNames.add(new Object[]{rootPath});</b>
+<i>58</i>&nbsp;            }
+<i>59</i>&nbsp;        }
+<b class="fc"><i>60</i>&nbsp;        return inputNames;</b>
+<i>61</i>&nbsp;    }
+<i>62</i>&nbsp;
+<i>63</i>&nbsp;    @Before
+<i>64</i>&nbsp;    public void setUp() throws IOException {
+<b class="fc"><i>65</i>&nbsp;        Path dirPath = Files.createTempDirectory(&quot;ditaa&quot;);</b>
+<b class="fc"><i>66</i>&nbsp;        this.tempDir = dirPath.toString();</b>
+<b class="fc"><i>67</i>&nbsp;    }</b>
+<i>68</i>&nbsp;
+<i>69</i>&nbsp;    @Test(expected = Test.None.class)
+<i>70</i>&nbsp;    public void checkDITAAOutput() throws NoSuchAlgorithmException, IOException {
+<b class="fc"><i>71</i>&nbsp;        String inputFile = AcceptanceTestSuite.INPUT_DIR + &quot;/&quot; + this.inputName + &quot;.txt&quot;;</b>
+<b class="fc"><i>72</i>&nbsp;        String outputFile = this.tempDir + &quot;/&quot; + this.inputName + &quot;.png&quot;;</b>
+<b class="fc"><i>73</i>&nbsp;        CommandLineConverter.runSimpleMode(options, inputFile, outputFile);</b>
+<i>74</i>&nbsp;
+<i>75</i>&nbsp;        // get the MD5 of the current output
+<b class="fc"><i>76</i>&nbsp;        byte[] actualDigest = this.getMD5(outputFile);</b>
+<i>77</i>&nbsp;
+<i>78</i>&nbsp;        // get the MD5 of the expected output
+<b class="fc"><i>79</i>&nbsp;        String expectedName = AcceptanceTestSuite.INPUT_DIR + &quot;/&quot; + this.inputName + &quot;.png&quot;;</b>
+<b class="fc"><i>80</i>&nbsp;        byte[] expectedDigest = this.getMD5(expectedName);</b>
+<i>81</i>&nbsp;
+<b class="fc"><i>82</i>&nbsp;        assert(Arrays.equals(actualDigest, expectedDigest));</b>
+<b class="fc"><i>83</i>&nbsp;    }</b>
+<i>84</i>&nbsp;
+<i>85</i>&nbsp;    private byte[] getMD5(String filename) throws NoSuchAlgorithmException, IOException {
+<b class="fc"><i>86</i>&nbsp;        MessageDigest md = MessageDigest.getInstance(&quot;MD5&quot;);</b>
+<b class="fc"><i>87</i>&nbsp;        try (InputStream is = Files.newInputStream(Paths.get(filename));</b>
+<b class="fc"><i>88</i>&nbsp;             DigestInputStream dis = new DigestInputStream(is, md))</b>
+<i>89</i>&nbsp;        {
+<b class="fc"><i>90</i>&nbsp;            int c = 0;</b>
+<b class="fc"><i>91</i>&nbsp;            while((c = dis.read()) != -1){</b>
+<b class="fc"><i>92</i>&nbsp;                continue;</b>
+<i>93</i>&nbsp;            }
+<b class="fc"><i>94</i>&nbsp;        }</b>
+<b class="fc"><i>95</i>&nbsp;        return md.digest();</b>
+<i>96</i>&nbsp;    }
+<i>97</i>&nbsp;}
+</div>
+</div>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2020-11-30 23:33</div>
+</div>
+</body>
+</html>
